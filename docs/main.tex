@@ -1,0 +1,219 @@
+\documentclass[13pt]{article}
+
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage[utf8]{inputenc}
+\usepackage[english,greek]{babel}
+\usepackage{graphicx}
+\graphicspath{{media/}}
+\usepackage[
+  a4paper,
+  top=2.5cm,
+  bottom=2.5cm,
+  left=2.5cm,
+  right=2.5cm
+]{geometry}
+\usepackage{siunitx}
+\usepackage{xcolor}
+\usepackage{pdfpages}
+\usepackage{soul}
+\usepackage{listings}
+\usepackage{subcaption}
+\usepackage{caption}
+
+\newcommand{\eng}[1]{\foreignlanguage{english}{#1}}
+\newcommand{\langeng}{\selectlanguage{english}}
+\newcommand{\langgrc}{\selectlanguage{greek}}
+
+\title{Βάσεις Δεδομένων\\[1.2ex]
+        \Large ΥΠΌΤΙΤΛΟΣ}
+\date{\today}
+\author{Ίωνας Τσακίρης 03123077\footnote{\eng{el23077@mail.ntua.gr}}}
+
+
+% Definition of \maketitle
+\makeatletter         
+\def\@maketitle{
+\raggedright
+\mbox{}\hfill
+\begin{minipage}{2cm}
+    \includegraphics[width = 20mm,valign=b]{pyrforos}
+\end{minipage}
+\hfill
+\begin{minipage}{12cm}
+    {\Large \bfseries Εθνικό Μετσόβιο Πολυτεχνείο}\\ 
+    {\Large Σχολή Ηλεκτρολόγων Μηχανικών και Μηχανικών\\Υπολογιστών}
+\end{minipage}
+
+\\[16ex]
+\begin{center}
+{\Huge \bfseries \@title }\\[4ex] 
+{\Large  \@author}\\[4ex] 
+\@date\\[8ex]
+\end{center}}
+\makeatother
+
+\begin{document}
+\pagenumbering{gobble}
+\maketitle
+\newpage
+\pagenumbering{arabic}
+
+\section{\eng{ERD}}
+\subsection{\eng{Entities}}
+\begin{itemize}
+\tightlist
+\item
+  προσωπικό(ΑΜΚ, όνομα, επώνυμο, ηλικία, email, τηλέφωνο, ημερομηνία
+  πλρόσληψης, τύπος προσωπικού)
+\item
+  γιατρός(ΑΜΚ, αριθμός άδειας γιατρικού συλλόγου, ειδικότητα, βαθμίδα)
+\item
+  νοσηλευτής(ΑΜΚ, βαθμίδα)
+\item
+  διοικητικό\_προσωπικό(ΑΜΚ, καθήκοντα/ρόλος)
+\item
+  τμήμα(όνομα, περιγραφή, αριθμό κλινών, όροφο, κτίριο, διευθυντής
+  τμήματος)
+\item
+  κλίνες(αριθμός, τύπος, κατάσταση)
+\item
+  αθενής(ΑΜΚΑ, όνομα, επώνυμο, πατρώνυμο, ηλικία, φύλο, βάρος, ύψος,
+  διεύθυνση, τηλέφωνο, email, επάγγελα, υπηκοότητα, στοιχεία οικείων
+  ατόμων, ασφαλιστικό φορέα)
+\item
+  ασφαλιστικός\_φορέας()
+\item
+  νοσηλείες()
+\item
+  εφημερία()
+\item
+  βάρδια()
+\item
+  νοσηλεια(ασθενής, κλίνη, τμήμα, ημερομηνία εισαγωγής, ημερομηνία
+  εξόδου, διάγνωση εισαγωγής, διάγνωση εξώδου, κόστος νοσηλείας)
+\item
+  κοστολόγηση(ΚΕΝ νοσηλείας)
+\item
+  εργαστηριακή\_εξέταση(κωδικός, τύπος, ημερομηνία, αποτέλεσμα, κόστος,
+  ιατρός που παρήγγειλε)
+\item
+  ιατρική\_πράξη(κωδικός, όνομα, κατηγορία, διάρκεια, κόστος, χώρος)
+\item
+  ιατρική\_επέμβαση()
+\item
+  φαρμακευτική\_αγωγή(ιατρός που χορηγεί, ασθενής, φάρμακο)
+\item
+  συνταγογράφηση(δοσολογία, συχνότητα, ημερομηνία έναρξης, ημερομηνία
+  λήξης)
+\end{itemize}
+
+γιατροί μπορεί να είναι: - διοικητής() - επόπτης()
+
+\subsection{\eng{Relations}}
+
+\begin{itemize}
+\tightlist
+\item
+  διοικητικό προσωπικό \textbf{είναι} προσωπικό
+\item
+  νοσηλευτής \textbf{είναι} προσωπικό
+\item
+  γιατρός \textbf{είναι} προσωπικό
+\item
+  επόπτης \textbf{είναι} γιατρός
+\item
+  γιατρός \textbf{μπορεί να έχει έναν} επόπτη
+\item
+  \textbf{αν} Α επόπτης Β, \textbf{τότε} Β \textbf{όχι} επόπτης Α
+\item
+  \textbf{κάθε} ειδικευόμενος \textbf{έχει έναν} επόπτη
+\item
+  διευθυντές \textbf{δεν έχουν} επόπτη
+\item
+  γιατρός \textbf{μπορεί να ανήκει σε \textgreater= 2} τμήματα
+\item
+  \textbf{κάθε} νοσηλευτής \textbf{έχει} βαθμίδα \textbf{και ανήκει σε
+  ένα} τμήμα
+\item
+  \textbf{κάθε} τμήμα \textbf{έχει έναν} διευθυντή (γιατρό)
+\item
+  \textbf{κάθε} τμήμα \textbf{έχει} κλίνες
+\item
+  \textbf{κάθε} ασθενής \textbf{έχει} ασφαλιστικό φορέα
+\item
+  ασθενής \textbf{μπορεί να έχει \textgreater=1} νοσηλείες (στο ιστορικό
+  του)
+\item
+  \textbf{κάθε} βάρδια \textbf{κάθε} τμήματος \textbf{έχει \textgreater=
+  3} γιατρούς \textbf{και \textgreater=6} νοσηλευτές \textbf{και
+  \textgreater= 2} διοικητικούς υπαλλήλους
+\item
+  \textbf{αν σε} βάρδια \textbf{υπάρχει} ειδικευόμενος γιατρός
+  \textbf{τότε πρέπει να υπάρχει \textgreater= 1} γιατρός βαθμίδας
+  Επιμελητής Α' \textbf{ή \textgreater= 1} διευθυντής
+\item
+  \textbf{κάθε} ασθενής \textbf{περάει από} νοσηλευτή διαλογής
+  \textbf{και έχει} επίπεδο επείγοντος
+\item
+  ασθενής \textbf{που χρειάζεται} νοσηλεία \textbf{εισάγεται σε} τμήμα
+  \textbf{με} κλίνη
+\item
+  \textbf{δες τα περί κοστολόγησης}
+\item
+  νοσηλεία \textbf{μπορεί να συνδέεται με \textgreater= 1}
+  εργαστηριακές\_εξετάσεις
+\item
+  νοσηλεία \textbf{μπορεί να συνδέεται με \textgreater= 1}
+  ιατρικές\_πράξεις
+\item
+  νοσηλεία \textbf{μπορεί να συνδέεται με \textgreater= 1}
+  ιατρικές\_επεμβάσεις
+\item
+  \textbf{κάθε} ιατρική\_επέμβαση \textbf{έχει} κύριο χειρούργο
+  \textbf{και \textgreater= 0} βοηθούς (προσωπικό)
+\item
+  \textbf{κάθε} φαρμακευτική\_αγωγή \textbf{εκδίδεται από} γιατρό
+\item
+  (γιατρός, ασθενής, φάρμακο, ημερομηνίας έναρξης) \textbf{είναι
+  superkey}
+\end{itemize}
+
+\subsection{Σημειώσεις}
+
+\begin{itemize}
+\tightlist
+\item
+  βαρδιες χωρίζονται σε πρωινές, απογευματινές και νυχτερινές
+\item
+  μέγιστο πλήθος βαρδιών:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    γιατρός: 15
+  \item
+    νοσηλευτής: 20
+  \item
+    διοικητικό προσωπικό: 25
+  \end{itemize}
+\item
+  προσωπικό δεν μπορεί να έχει διαδοχικές βάρδιες (πρωί \textbf{ΚΑΙ}
+  απόγευμα \textbf{\emph{Ή}} απόγευμα \textbf{ΚΑΙ} νύχτα
+  \textbf{\emph{Ή}} νύχτα \textbf{ΚΑΙ} πρωί)
+\item
+  προσωπικό δεν μπορεί να έχει \textgreater=3 διαδοχικές νυστερινές
+  βάρδιες
+\item
+    εξυπηρέτηση βάσει επιπέδου επείγοντος με \eng{FIFO}
+\item
+  δύο επεμβάσεις δεν μπορούν να πραγματοποιούνται ταυτόχρονα στον ίδιο
+  χώρο και με το ίδιο προσωπικό
+\item
+  ασθενείς μπορεί να έχουν καταγεγραμμένες αλλεργίες σε δραστικές ουσίες
+\item
+  απαγορεύεται η συνταγογράφηση φαρμάκων με δραστική ουσία στην οποία
+  είναι αλλεργικός ο ασθενής
+\end{itemize}
+
+\end{document}

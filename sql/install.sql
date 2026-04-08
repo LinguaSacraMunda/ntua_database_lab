@@ -6,167 +6,323 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
-drop schema if exists ntua_db_2026;
-create schema ntua_db_2026;
-use ntua_db_2026;
+DROP SCHEMA IF EXISTS ntua_db_2026;
+CREATE SCHEMA ntua_db_2026;
+USE ntua_db_2026;
 
-create table tablename (
-)engine=InnoDB default charset=utf8;
 
 
 --
 -- Table structure for patient
 --
-create table patient (
-    AMKA int unsigned not null,
-    first_name varchar(45) not null,
-    middle_name varchar(45) not null,
-    last_name varchar(45) not null,
-    date_of_birth date not null,
-    sex  enum('male', 'female', 'other') not null,
-    weight numeric(5,2) not null default 000.00,   --in kg
-    height numeric(5,2) not null default 000.00,   --in cm
+
+CREATE TABLE patient (
+    AMKA INT UNSIGNED NOT NULL,
+    first_name VARCHAR(45) NOT NULL,
+    middle_name VARCHAR(45) DEFAULT NULL,
+    last_name VARCHAR(45) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    sex  ENUM('male', 'female', 'other') NOT NULL,
+    weight NUMERIC(5,2) NOT NULL DEFAULT 000.00,   --in kg
+    height NUMERIC(5,2) NOT NULL DEFAULT 000.00,   --in cm
     --address
-    street_name varchar(45) default null,
-    street_number varchar(45) default null,
-    postal_code varchar(10) default null,
-    area varchar(45) default null,
-    municipality varchar(45) default null,
-    prefecture varchar(45) default null,
+    street_name VARCHAR(45) DEFAULT NULL,
+    street_number VARCHAR(45) DEFAULT NULL,
+    postal_code VARCHAR(10) DEFAULT NULL,
+    area VARCHAR(45) DEFAULT NULL,
+    municipality VARCHAR(45) DEFAULT NULL,
+    prefecture VARCHAR(45) DEFAULT NULL,
     --address end
-    proffesion varchar(45) default null,
-    citizenship varchar(45) default null,
+    proffesion VARCHAR(45) DEFAULT NULL,
+    citizenship VARCHAR(45) DEFAULT NULL,
 
-    triage_id int unsigned not null auto_increment,
-    primary key (AMKA),
-    constraint fk_patient_triage foreign key (triage_id) references triage (triage_id) on delete restrict on upfate cascade
-)engine=InnoDB default charset=utf8;
+    triage_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (AMKA),
+    --CONSTRAINT fk_patient_triage FOREIGN KEY (triage_id) REFERENCES triage (triage_id) ON DELETE RESTRICT ON UPFATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-create table patient_email (
-    AMKA int unsigned not null,
-    email_address varchar(45) not null,
-    primary key (email_id, email_address),
-    constraint fk_patient_email foreign key (AMKA) references patient (AMKA) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
+CREATE TABLE patient_email (
+    AMKA INT UNSIGNED NOT NULL,
+    email_address VARCHAR(45) NOT NULL,
+    PRIMARY KEY (AMKA, email_address),
+    CONSTRAINT fk_patient_email FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-create table patient_phone (
-    AMKA int unsigned not null,
-    phone_number varchar(20) not null,
-    primary key (AMKA, phone_number),
-    constraint fk_patient_phone foreign key (AMKA) references patient (AMKA) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
+CREATE TABLE patient_phone (
+    AMKA INT UNSIGNED NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    PRIMARY KEY (AMKA, phone_number),
+    CONSTRAINT fk_patient_phone FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 --
 -- Table structure for nurse 
 --
-create table nurse (
-    AMKA int unsigned not null,
-    first_name varchar(45) not null,
-    middle_name varchar(45) not null,
-    last_name varchar(45) not null,
-    date_of_birth date not null,
-    date_of_employment date not null,
-    rank enum('Βοηθός Νοσηλευτή', 'Νοσηλευτής', 'Προϊστάμενος') not null,
-    dept_name int unsigned not null,
-    primary key (AMKA),
-    constraint fk_nurse_dept foreign key (dept_name) references department (dept_name) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
 
-create table nurse_email (
-    AMKA int unsigned not null,
-    email_address varchar(45) not null,
-    primary key (email_id, email_address),
-    constraint fk_nurse_email foreign key (AMKA) references nurse (AMKA) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
+CREATE TABLE nurse (
+    AMKA INT UNSIGNED NOT NULL,
+    first_name VARCHAR(45) NOT NULL,
+    middle_name VARCHAR(45) DEFAULT NULL,
+    last_name VARCHAR(45) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    date_of_employment DATE NOT NULL,
+    rank ENUM('Βοηθός Νοσηλευτή', 'Νοσηλευτής', 'Προϊστάμενος') NOT NULL,
+    dept_name INT UNSIGNED NOT NULL,
+    PRIMARY KEY (AMKA),
+    CONSTRAINT fk_nurse_dept FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-create table nurse_phone (
-    AMKA int unsigned not null,
-    phone_number varchar(20) not null,
-    primary key (AMKA, phone_number),
-    constraint fk_nurse_phone foreign key (AMKA) references nurse (AMKA) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
+CREATE TABLE nurse_email (
+    AMKA INT UNSIGNED NOT NULL,
+    email_address VARCHAR(45) NOT NULL,
+    PRIMARY KEY (AMKA, email_address),
+    CONSTRAINT fk_nurse_email FOREIGN KEY (AMKA) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE nurse_phone (
+    AMKA INT UNSIGNED NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    PRIMARY KEY (AMKA, phone_number),
+    CONSTRAINT fk_nurse_phone FOREIGN KEY (AMKA) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 --
 -- Table structure for administrative staff 
 --
-create table administrative_staff (
-    AMKA int unsigned not null,
-    first_name varchar(45) not null,
-    middle_name varchar(45) not null,
-    last_name varchar(45) not null,
-    date_of_birth date not null,
-    date_of_employment date not null,
-    role enum('Γραμματεία', 'Λογιστήριο', 'Ανθρώπινο Δυναμικό', 'Τεχνική Υποστήριξη') not null,
-    office varchar(10) not null
-    dept_name int unsigned not null,
-    primary key (AMKA),
-    constraint fk_admin_dept foreign key (dept_name) references department (dept_name) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
 
-create table admin_email (
-    AMKA int unsigned not null,
-    email_address varchar(45) not null,
-    primary key (email_id, email_address),
-    constraint fk_admin_email foreign key (AMKA) references admin (AMKA) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
+CREATE TABLE administrative_staff (
+    AMKA INT UNSIGNED NOT NULL,
+    first_name VARCHAR(45) NOT NULL,
+    middle_name VARCHAR(45) DEFAULT NULL,
+    last_name VARCHAR(45) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    date_of_employment DATE NOT NULL,
+    role ENUM('Γραμματεία', 'Λογιστήριο', 'Ανθρώπινο Δυναμικό', 'Τεχνική Υποστήριξη') NOT NULL,
+    office VARCHAR(10) NOT NULL,
+    dept_name INT UNSIGNED NOT NULL,
+    PRIMARY KEY (AMKA),
+    CONSTRAINT fk_admin_dept FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-create table admin_phone (
-    AMKA int unsigned not null,
-    phone_number varchar(20) not null,
-    primary key (AMKA, phone_number),
-    constraint fk_admin_phone foreign key (AMKA) references admin (AMKA) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
+CREATE TABLE admin_email (
+    AMKA INT UNSIGNED NOT NULL,
+    email_address VARCHAR(45) NOT NULL,
+    PRIMARY KEY (AMKA, email_address),
+    CONSTRAINT fk_admin_email FOREIGN KEY (AMKA) REFERENCES administrative_staff (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE admin_phone (
+    AMKA INT UNSIGNED NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    PRIMARY KEY (AMKA, phone_number),
+    CONSTRAINT fk_admin_phone FOREIGN KEY (AMKA) REFERENCES administrative_staff (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 --
 -- Table structure for doctor 
 --
-create table doctor (
-    AMKA int unsigned not null,
-    first_name varchar(45) not null,
-    middle_name varchar(45) not null,
-    last_name varchar(45) not null,
-    date_of_birth date not null,
-    date_of_employment date not null,
-    dept_name int unsigned not null,
-    license_number varchar(20) not null,
-    specialty set(),
-    primary key (AMKA),
-    constraint fk_doctor_dept foreign key (dept_name) references department (dept_name) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
 
-create table doctor_email (
-    AMKA int unsigned not null,
-    email_address varchar(45) not null,
-    primary key (email_id, email_address),
-    constraint fk_doctor_email foreign key (AMKA) references doctor (AMKA) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
+CREATE TABLE doctor (
+    AMKA INT UNSIGNED NOT NULL,
+    first_name VARCHAR(45) NOT NULL,
+    middle_name VARCHAR(45) DEFAULT NULL,
+    last_name VARCHAR(45) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    date_of_employment DATE NOT NULL,
+    license_number VARCHAR(20) NOT NULL,
+    rank ENUM('Ειδικευόμενος', 'Επιμελητής Β', 'Επιμελητής Α', 'Διευθυντής') NOT NULL,
+    supervisor_id INT UNSIGNED DEFAULT NULL,
+    PRIMARY KEY (AMKA),
+    CONSTRAINT fk_supervisor_id FOREIGN KEY (supervisor_id) REFERENCES doctor (AMKA) ON DELETE SET NULL ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-create table doctor_phone (
-    AMKA int unsigned not null,
-    phone_number varchar(20) not null,
-    primary key (AMKA, phone_number),
-    constraint fk_doctor_phone foreign key (AMKA) references doctor (AMKA) on delete restrict on update cascade
-)engine=InnoDB default charset=utf8;
+CREATE TABLE doctor_email (
+    AMKA INT UNSIGNED NOT NULL,
+    email_address VARCHAR(45) NOT NULL,
+    PRIMARY KEY (AMKA, email_address),
+    CONSTRAINT fk_doctor_email FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE doctor_phone (
+    AMKA INT UNSIGNED NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    PRIMARY KEY (AMKA, phone_number),
+    CONSTRAINT fk_doctor_phone FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-create table specialisation (
-    spec_id varchar(10) not null,
-    type varchar(45) not null,
-)
+--
+-- Doctor specialisation
+--
 
-
-
-
-
-
+CREATE TABLE specialisation (
+    spec_code VARCHAR(5) NOT NULL,
+    description VARCHAR(45) NOT NULL,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+CREATE TABLE doc_spec (
+    AMKA INT UNSIGNED NOT NULL,
+    spec_code VARCHAR(5) NOT NULL,
+    PRIMARY KEY (AMKA, spec_code),
+    CONSTRAINT fk_doctor_id FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_spec_id FOREIGN KEY (spec_code) REFERENCES specialisation (spec_code) ON DELETE RESTRICT ON UPDATE CASCADE,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+--
+-- Triggers to prevent circular doctor supervision
+--
+DELIMITER ;;
+CREATE TRIGGER ins_doc_supervisor BEFORE INSERT ON doctor FOR EACH ROW BEGIN
+    IF NEW.supervisor_id IS NULL THEN
+        LEAVE;
+    END IF;
 
+    SET @supervisee_id = NEW.AMKA;
+    SET @supervisor_id = NEW.supervisor_id;
+    SET @cycle_detection = 0;
+
+    RECURSIVE supervision_cycle AS (
+        SELECT AMKA, supervisor_id
+        FROM doctor
+        WHERE AMKA = @supervisee_id
+        UNION ALL
+        SELECT doc.AMKA, doc.supervisor_id
+        FROM doctor doc
+        JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervision_cycle
+    )
+    SELECT COUNT(*) INTO @cycle_detection
+    FROM supervision_cycle
+    WHERE AMKA = @supervisor_id
+
+    IF @cycle_detection > 0 THEN
+        ROLLBACK
+    END IF
+END;;
+
+CREATE TRIGGER upd_doc_supervisor BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
+    IF NEW.supervisor_id IS NULL THEN
+        LEAVE;
+    END IF;
+
+    SET @supervisee_id = NEW.AMKA;
+    SET @supervisor_id = NEW.supervisor_id;
+    SET @cycle_detection = 0;
+
+    RECURSIVE supervision_cycle AS (
+        SELECT AMKA, supervisor_id
+        FROM doctor
+        WHERE AMKA = @supervisee_id
+        UNION ALL
+        SELECT doc.AMKA, doc.supervisor_id
+        FROM doctor doc
+        JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervision_cycle
+    )
+    SELECT COUNT(*) INTO @cycle_detection
+    FROM supervision_cycle
+    WHERE AMKA = @supervisor_id
+
+    IF @cycle_detection > 0 THEN
+        ROLLBACK
+    END IF
+END;;
+DELIMITER ;
+
+--
+-- Table structure for department
+--
+
+CREATE TABLE department (
+    dept_name VARCHAR(45) NOT NULL,
+    description TEXT NOT NULL,
+    number_of_beds INT UNSIGNED NOT NULL DEFAULT = 0,
+    floor VARCHAR(5) NOT NULL,
+    building VARCHAR(10) NOT NULL,
+    director_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (dept_name),
+    CONSTRAINT fk_dept_head FOREIGN KEY (director_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for doctor-department relation
+--
+
+CREATE TABLE doctor_dept (
+    AMKA INT UNSIGNED NOT NULL,
+    dept_name INT UNSIGNED NOT NULL,
+    PRIMARY KEY (AMKA, dept_name),
+    CONSTRAINT fk_doc_dept_doctor_id FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_doc_dept_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for beds
+--
+
+CREATE TABLE bed (
+    bed_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    type ENUM('ΜΕΘ', 'Μονόκλινο', 'Πολύκλινο', 'ΜΕΝΝ', 'Θάλαμος Νοσηλείας') NOT NULL,
+    status ENUM('Διαθέσιμη', 'Κατειλημμένη', 'Υπό Συντήρηση') NOT NULL,
+    dept_name VARCHAR(45) NOT NULL,
+    PRIMARY KEY (bed_id),
+    CONSTRAINT fk_bed_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for room
+--
+
+CREATE TABLE room (
+    rood_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    type ENUM('Κλίνες', 'Χειρουργική Αίθουσα', 'ΤΕΠ', 'Διαγνωστική Αίθουσα', 'Αίθουσα Αναμονής', 'Γραφείο', 'Αποθήκη') NOT NULL,
+    status ENUM('Διαθέσιμη', 'Κατειλημμένη', 'Υπό Συντήρηση') NOT NULL,
+    dept_name VARCHAR(45) NOT NULL,
+    PRIMARY KEY (rood_id),
+    CONSTRAINT fk_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for equipment
+--
+
+CREATE TABLE equipment (
+    equid_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    type VARCHAR(100) NOT NULL,
+    PRIMARY KEY (equid_id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE equipment_room (
+    equid_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    rood_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (equid_id),
+    CONSTRAINT fk_equip_room_equid_id FOREIGN KEY (equid_id) REFERENCES equipment (equid_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_equip_room_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE equipment_dept (
+    equid_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    dept_name VARCHAR(45) NOT NULL,
+    PRIMARY KEY (equid_id),
+    CONSTRAINT fk_equip_room_equid_id FOREIGN KEY (equid_id) REFERENCES equipment (equid_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_equip_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for timeslot
+--
+
+CREATE TABLE time_slot (
+    time_slot_id INT UNSIGNED AUTO_INCREMENT,
+    day INT UNSIGNED CHECK (day > 0 AND day < 32),
+    type  ENUM('07:00-15:00', '15:00-23:00', '23:00-07:00') NOT NULL,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE tablename (
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

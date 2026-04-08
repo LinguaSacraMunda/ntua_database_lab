@@ -269,8 +269,10 @@ CREATE TABLE bed (
     type ENUM('ΜΕΘ', 'Μονόκλινο', 'Πολύκλινο', 'ΜΕΝΝ', 'Θάλαμος Νοσηλείας') NOT NULL,
     status ENUM('Διαθέσιμη', 'Κατειλημμένη', 'Υπό Συντήρηση') NOT NULL,
     dept_name VARCHAR(45) NOT NULL,
+    room_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (bed_id),
-    CONSTRAINT fk_bed_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT fk_bed_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_bed_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -351,6 +353,15 @@ CREATE TABLE admin_shift (
     CONSTRAINT fk_admin_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
+--
+-- Shift verification triggers
+-- A shift may have status = 1 if and only if it has
+--          >= 3 doctors     AND
+--          >= 6 nurses      AND
+--          >= 2 admin staff
+--
+
 DELIMITER ;;
 CREATE TRIGGER upd_shift_validity BEFORE UPDATE ON shift FOR EACH ROW BEGIN
     DECLARE d_cnt INT DEFAULT 0;
@@ -412,6 +423,20 @@ CREATE TRIGGER del_admin_shift BEFORE DELETE ON admin_shift FOR EACH ROW BEGIN
         WHERE shift_if = OLD.shift_if;
     END IF;
 END;;
+
+--
+-- Additional restrictions
+-- ~ no staff member may have > 2 consecutive shifts
+-- ~ no staff member may have > 3 consecutive night shifts
+--
+
+CREATE TRIGGER ins_doc_shift BEFORE INSERT ON doctor_shift FOR EACH ROW BEGIN
+    SELECT * FROM (
+        SELECT * FROM shift AS s 
+        WHERE s.AMKA = NEW.AMKA
+    ) AS hlpr WHERE DATE_SUB(NEW.)
+END;;
+
 
 DELIMITER ;
 

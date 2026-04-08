@@ -199,7 +199,8 @@ CREATE TRIGGER ins_doc_supervisor BEFORE INSERT ON doctor FOR EACH ROW BEGIN
     WHERE AMKA = @supervisor_id
 
     IF @cycle_detection > 0 THEN
-        ROLLBACK
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
     END IF
 END;;
 
@@ -226,7 +227,8 @@ CREATE TRIGGER upd_doc_supervisor BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
     WHERE AMKA = @supervisor_id
 
     IF @cycle_detection > 0 THEN
-        ROLLBACK
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
     END IF
 END;;
 DELIMITER ;
@@ -289,37 +291,129 @@ CREATE TABLE room (
 --
 
 CREATE TABLE equipment (
-    equid_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    type VARCHAR(100) NOT NULL,
-    PRIMARY KEY (equid_id)
+    UID VARCHAR(128) NOT NULL,
+    description TEXT NOT NULL,
+    PRIMARY KEY (UID)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE equipment_room (
-    equid_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    UID INT UNSIGNED NOT NULL AUTO_INCREMENT,
     rood_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    PRIMARY KEY (equid_id),
-    CONSTRAINT fk_equip_room_equid_id FOREIGN KEY (equid_id) REFERENCES equipment (equid_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    PRIMARY KEY (UID),
+    CONSTRAINT fk_equip_room_UID FOREIGN KEY (UID) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_equip_room_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE equipment_dept (
-    equid_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    UID INT UNSIGNED NOT NULL AUTO_INCREMENT,
     dept_name VARCHAR(45) NOT NULL,
-    PRIMARY KEY (equid_id),
-    CONSTRAINT fk_equip_room_equid_id FOREIGN KEY (equid_id) REFERENCES equipment (equid_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    PRIMARY KEY (UID),
+    CONSTRAINT fk_equip_room_UID FOREIGN KEY (UID) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_equip_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Table structure for timeslot
+-- Table structure for shift 
 --
 
-CREATE TABLE time_slot (
-    time_slot_id INT UNSIGNED AUTO_INCREMENT,
-    day INT UNSIGNED CHECK (day > 0 AND day < 32),
+CREATE TABLE shift (
+    shift_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    day DATE NOT NULL,
     type  ENUM('07:00-15:00', '15:00-23:00', '23:00-07:00') NOT NULL,
+    -- bool status;
+    status TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (shift_id, day, type)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE nurse_shift (
+    AMKA INT UNSIGNED NOT NULL,
+    shift_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (AMKA, shift_id),
+    CONSTRAINT fk_nurse_shift_nurse_id FOREIGN KEY (AMKA) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_nurse_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE doctor_shift (
+    AMKA INT UNSIGNED NOT NULL,
+    shift_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (AMKA, shift_id),
+    CONSTRAINT fk_doctor_shift_doctor_id FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_doctor_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE admin_shift (
+    AMKA INT UNSIGNED NOT NULL,
+    shift_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (AMKA, shift_id),
+    CONSTRAINT fk_admin_shift_admin_id FOREIGN KEY (AMKA) REFERENCES administrative_staff (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_admin_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DELIMITER ;;
+CREATE TRIGGER upd_shift_validity BEFORE UPDATE ON shift FOR EACH ROW BEGIN
+    DECLARE d_cnt INT DEFAULT 0;
+    DECLARE n_cnt INT DEFAULT 0;
+    DECLARE a_cnt INT DEFAULT 0;
+
+    IF NEW.status = 1 ΤΗΕΝ 
+        SELECT COUNT(*) INTO d_cnt
+        FROM doctor_shift WHERE shift_id = NEW.shift_id;
+
+        SELECT COUNT(*) INTO n_cnt
+        FROM nurse_shift  WHERE shift_id = NEW.shift_id;
+
+        SELECT COUNT(*) INTO a_cnt
+        FROM admin_shift  WHERE shift_id = NEW.shift_id;
+
+        IF (d_cnt < 3) OR (n_cnt < 6) OR (a_cnt < 2) THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Shift does not meet minimum staffing requirements';
+        END IF;
+    END IF;
+END;;
+
+CREATE TRIGGER del_doctor_shift BEFORE DELETE ON doctor_shift FOR EACH ROW BEGIN
+    DECLARE cnt INT DEFAULT 0;
+
+    SELECT COUNT(*) INTO cnt
+    from doctor_shift WHERE shift_id = OLD.shift_id;
+
+    if cnt < 3 THEN
+        UPDATE shift
+        SET status = 0
+        WHERE shift_if = OLD.shift_if;
+    END IF;
+END;;
+
+CREATE TRIGGER del_nurse_shift BEFORE DELETE ON nurse_shift FOR EACH ROW BEGIN
+    DECLARE cnt INT DEFAULT 0;
+
+    SELECT COUNT(*) INTO cnt
+    from nurse_shift WHERE shift_id = OLD.shift_id;
+
+    if cnt < 6 THEN
+        UPDATE shift
+        SET status = 0
+        WHERE shift_if = OLD.shift_if;
+    END IF;
+END;;
+
+CREATE TRIGGER del_admin_shift BEFORE DELETE ON admin_shift FOR EACH ROW BEGIN
+    DECLARE cnt INT DEFAULT 0;
+
+    SELECT COUNT(*) INTO cnt
+    from admin_shift WHERE shift_id = OLD.shift_id;
+
+    if cnt < 2 THEN
+        UPDATE shift
+        SET status = 0
+        WHERE shift_if = OLD.shift_if;
+    END IF;
+END;;
+
+DELIMITER ;
 
 CREATE TABLE tablename (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;

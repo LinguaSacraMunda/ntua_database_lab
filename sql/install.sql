@@ -386,7 +386,7 @@ CREATE TABLE patient_insurance (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
---  Table structure for hospitalisation
+--  Table structure for costing
 --
 
 CREATE TABLE costing (
@@ -470,14 +470,146 @@ CREATE TABLE discharge_diagnosis (
     CONSTRAINT fk_dis_diag_hospitalisation_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_dis_diag_diagnosis_id FOREIGN KEY (diag_id) REFERENCES diagnosis (diag_id) ON DELETE RESTRICT ON UPDATE CASCADE,
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-CREATE TABLE tablename (
+
+--
+--  Table structures for medical procedure 
+--
+
+CREATE TABLE medical_procedure (
+    code VARCHAR(10) NOT NULL,
+    description TEXT NOT NULL,
+    PRIMARY KEY (code)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+--  Table structures for lab test
+--
+
+CREATE TABLE lab_test (
+    lab_test_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    code VARCHAR(10) NOT NULL,
+    doc_id INT UNSIGNED NOT NULL,
+    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    result TEXT NOT NULL,
+    cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00,
+    PRIMARY KEY (lab_test_id),
+    CONSTRAINT fk_lab_test_med_procedure_id FOREIGN KEY (code) REFERENCES medical_procedure (code) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_lab_test_doctor_id FOREIGN KEY (doc_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+--
+-- Table structure for relation hospitalisation <--< has >--- lab_test
+--
 
+CREATE TABLE hosp_lab_test (
+    lab_test_id INT UNSIGNED NOT NULL,
+    hosp_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (lab_test_id),
+    CONSTRAINT fk_hosp_lab_test_lab_test_id FOREIGN KEY (lab_test_id) REFERENCES lab_test (lab_test_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_hosp_lab_test_hosp_id FOREIGN KEY (hosp_id) REFERENCES medical_procedure (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Table structure for medical act
+--
 
+CREATE TABLE medical_act (
+    med_act_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    type VARCHAR(45) NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    duration TIME NOT NULL,
+    room_id INT UNSIGNED NOT NULL,
+    cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00,
+    PRIMARY KEY (med_act_id),
+    CONSTRAINT fk_medical_act_med_procedure_id FOREIGN KEY (code) REFERENCES medical_procedure (code) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_medical_act_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Table structure for relation hospitalisation <--< has >--- medical_act 
+--
+
+CREATE TABLE hosp_med_act (
+    med_act_id INT UNSIGNED NOT NULL,
+    hosp_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (med_act_id),
+    CONSTRAINT fk_hosp_med_act_med_act_id FOREIGN KEY (med_act_id) REFERENCES medical_act (med_act_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_hosp_med_act_hospit_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for rating 
+--
+
+CREATE TABLE rating (
+    AMKA INT UNSIGNED NOT NULL,
+    hosp_id INT UNSIGNED NOT NULL,
+    medical_care TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= medical_care  AND medical_care <= 5),
+    nursing_case TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= nursing_case  AND nursing_case <= 5),
+    cleanliness TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= cleanliness  AND cleanliness <= 5),
+    food TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= food  AND food <= 5),
+    experience TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= experience  AND experience <= 5),
+    PRIMARY KEY (AMKA, hosp_id),
+    CONSTRAINT fk_rating_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_rating_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structures for pharmaceutical products 
+--
+
+CREATE TABLE active_substance (
+    act_sub_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (act_sub_id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE route_of_admission (
+    route_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    type VARCHAR(255) NOT NULL,
+    PRIMARY KEY (route_id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE pharmaceutical_product (
+    prod_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    auth_country VARCHAR(100) NOT NULL,
+    marketing_auth_holder VARCHAR(255) NOT NULL,
+    master_file_loc VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(100) NOT NULL,
+    PRIMARY KEY (pharm_prod_id),
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE product_act_sub (
+    act_sub_id INT UNSIGNED NOT NULL,
+    prod_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (route_id),
+    CONSTRAINT fk_prod_act_sub_sub_id FOREIGN KEY (act_sub_id) REFERENCES active_substance (act_sub_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_prod_act_product_id FOREIGN KEY (prod_id) REFERENCES pharmaceutical_product (prod_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE product_route (
+    route_id INT UNSIGNED NOT NULL,
+    prod_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (route_id),
+    CONSTRAINT fk_prod_route_route_id FOREIGN KEY (route_id) REFERENCES route_of_admission (route_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_prod_route_product_id FOREIGN KEY (prod_id) REFERENCES pharmaceutical_product (prod_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+--
+-- Table structures for patient allergies 
+--
+
+CREATE TABLE patient_allergy (
+    AMKA INT UNSIGNED NOT NULL,
+    act_sub_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (AMKA, act_sub_id),
+    CONSTRAINT fk_allergy_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_allergy_substance_id FOREIGN KEY (act_sub_id) REFERENCES active_substance (act_sub_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE tablename (
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 

@@ -23,22 +23,22 @@ CREATE TABLE patient (
     last_name VARCHAR(45) NOT NULL,
     date_of_birth DATE NOT NULL,
     sex  ENUM('male', 'female', 'other') NOT NULL,
-    weight NUMERIC(5,2) NOT NULL DEFAULT 000.00,   --in kg
-    height NUMERIC(5,2) NOT NULL DEFAULT 000.00,   --in cm
-    --address
+    weight NUMERIC(5,2) NOT NULL DEFAULT 000.00,   -- in kg
+    height NUMERIC(5,2) NOT NULL DEFAULT 000.00,   -- in cm
+    -- address
     street_name VARCHAR(45) DEFAULT NULL,
     street_number VARCHAR(45) DEFAULT NULL,
     postal_code VARCHAR(10) DEFAULT NULL,
     area VARCHAR(45) DEFAULT NULL,
     municipality VARCHAR(45) DEFAULT NULL,
     prefecture VARCHAR(45) DEFAULT NULL,
-    --address end
+    -- address end
     proffesion VARCHAR(45) DEFAULT NULL,
     citizenship VARCHAR(45) DEFAULT NULL,
 
     triage_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     PRIMARY KEY (AMKA),
-    CONSTRAINT fk_patient_triage FOREIGN KEY (triage_id) REFERENCES triage (triage_id) ON DELETE RESTRICT ON UPFATE CASCADE
+    CONSTRAINT fk_patient_triage FOREIGN KEY (triage_id) REFERENCES triage (triage_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE patient_email (
@@ -134,7 +134,7 @@ CREATE TABLE doctor (
     date_of_employment DATE NOT NULL,
     license_number VARCHAR(20) NOT NULL,
     rank ENUM('Ειδικευόμενος', 'Επιμελητής Β', 'Επιμελητής Α', 'Διευθυντής') NOT NULL,
-    supervisor_id INT UNSIGNED DEFAULT NULL,
+    supervisor_id VARCHAR(10) NULL,
     PRIMARY KEY (AMKA),
     CONSTRAINT fk_supervisor_id FOREIGN KEY (supervisor_id) REFERENCES doctor (AMKA) ON DELETE SET NULL ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -160,6 +160,7 @@ CREATE TABLE doctor_phone (
 CREATE TABLE specialisation (
     spec_code VARCHAR(5) NOT NULL,
     description VARCHAR(45) NOT NULL,
+    PRIMARY KEY (spec_code)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -168,68 +169,67 @@ CREATE TABLE doc_spec (
     spec_code VARCHAR(5) NOT NULL,
     PRIMARY KEY (AMKA, spec_code),
     CONSTRAINT fk_doctor_id FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_spec_id FOREIGN KEY (spec_code) REFERENCES specialisation (spec_code) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_spec_id FOREIGN KEY (spec_code) REFERENCES specialisation (spec_code) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 --
 -- Triggers to prevent circular doctor supervision
 --
+
 DELIMITER ;;
 CREATE TRIGGER ins_doc_supervisor BEFORE INSERT ON doctor FOR EACH ROW BEGIN
-    IF NEW.supervisor_id IS NULL THEN
-        LEAVE;
+    IF NEW.supervisor_id IS NOT NULL THEN
+
+        SET @supervisee_id = NEW.AMKA;
+        SET @supervisor_id = NEW.supervisor_id;
+        SET @cycle_detection = 0;
+
+        WITH RECURSIVE supervision_cycle AS (
+            SELECT AMKA, supervisor_id
+            FROM doctor
+            WHERE AMKA = @supervisee_id
+            UNION ALL
+            SELECT doc.AMKA, doc.supervisor_id
+            FROM doctor doc
+            JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervisor_id
+        )
+        SELECT COUNT(*) INTO @cycle_detection
+        FROM supervision_cycle
+        WHERE AMKA = @supervisor_id;
+
+        IF @cycle_detection > 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
+        END IF;
     END IF;
-
-    SET @supervisee_id = NEW.AMKA;
-    SET @supervisor_id = NEW.supervisor_id;
-    SET @cycle_detection = 0;
-
-    RECURSIVE supervision_cycle AS (
-        SELECT AMKA, supervisor_id
-        FROM doctor
-        WHERE AMKA = @supervisee_id
-        UNION ALL
-        SELECT doc.AMKA, doc.supervisor_id
-        FROM doctor doc
-        JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervision_cycle
-    )
-    SELECT COUNT(*) INTO @cycle_detection
-    FROM supervision_cycle
-    WHERE AMKA = @supervisor_id
-
-    IF @cycle_detection > 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
-    END IF
 END;;
 
 CREATE TRIGGER upd_doc_supervisor BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
-    IF NEW.supervisor_id IS NULL THEN
-        LEAVE;
+    IF NEW.supervisor_id IS NOT NULL THEN
+
+        SET @supervisee_id = NEW.AMKA;
+        SET @supervisor_id = NEW.supervisor_id;
+        SET @cycle_detection = 0;
+
+        WITH RECURSIVE supervision_cycle AS (
+            SELECT AMKA, supervisor_id
+            FROM doctor
+            WHERE AMKA = @supervisee_id
+            UNION ALL
+            SELECT doc.AMKA, doc.supervisor_id
+            FROM doctor doc
+            JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervisor_id
+        )
+        SELECT COUNT(*) INTO @cycle_detection
+        FROM supervision_cycle
+        WHERE AMKA = @supervisor_id;
+
+        IF @cycle_detection > 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
+        END IF;
     END IF;
-
-    SET @supervisee_id = NEW.AMKA;
-    SET @supervisor_id = NEW.supervisor_id;
-    SET @cycle_detection = 0;
-
-    RECURSIVE supervision_cycle AS (
-        SELECT AMKA, supervisor_id
-        FROM doctor
-        WHERE AMKA = @supervisee_id
-        UNION ALL
-        SELECT doc.AMKA, doc.supervisor_id
-        FROM doctor doc
-        JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervision_cycle
-    )
-    SELECT COUNT(*) INTO @cycle_detection
-    FROM supervision_cycle
-    WHERE AMKA = @supervisor_id
-
-    IF @cycle_detection > 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
-    END IF
 END;;
 DELIMITER ;
 
@@ -240,10 +240,10 @@ DELIMITER ;
 CREATE TABLE department (
     dept_name VARCHAR(45) NOT NULL,
     description TEXT NOT NULL,
-    number_of_beds INT UNSIGNED NOT NULL DEFAULT = 0,
+    number_of_beds INT UNSIGNED NOT NULL DEFAULT 0,
     floor VARCHAR(5) NOT NULL,
     building VARCHAR(10) NOT NULL,
-    director_id INT UNSIGNED NOT NULL,
+    director_id VARCHAR(10) NOT NULL,
     PRIMARY KEY (dept_name),
     CONSTRAINT fk_dept_head FOREIGN KEY (director_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -254,7 +254,7 @@ CREATE TABLE department (
 
 CREATE TABLE doctor_dept (
     AMKA VARCHAR(10) NOT NULL,
-    dept_name INT UNSIGNED NOT NULL,
+    dept_name VARCHAR(45) NOT NULL,
     PRIMARY KEY (AMKA, dept_name),
     CONSTRAINT fk_doc_dept_doctor_id FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_doc_dept_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -280,11 +280,11 @@ CREATE TABLE bed (
 --
 
 CREATE TABLE room (
-    rood_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    room_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     type ENUM('Κλίνες', 'Χειρουργική Αίθουσα', 'ΤΕΠ', 'Διαγνωστική Αίθουσα', 'Αίθουσα Αναμονής', 'Γραφείο', 'Αποθήκη') NOT NULL,
     status ENUM('Διαθέσιμη', 'Κατειλημμένη', 'Υπό Συντήρηση') NOT NULL,
     dept_name VARCHAR(45) NOT NULL,
-    PRIMARY KEY (rood_id),
+    PRIMARY KEY (room_id),
     CONSTRAINT fk_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -300,15 +300,15 @@ CREATE TABLE equipment (
 
 
 CREATE TABLE equipment_room (
-    UID INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    rood_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    UID VARCHAR(128) NOT NULL,
+    room_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (UID),
     CONSTRAINT fk_equip_room_UID FOREIGN KEY (UID) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_equip_room_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE equipment_dept (
-    UID INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    UID VARCHAR(128) NOT NULL,
     dept_name VARCHAR(45) NOT NULL,
     PRIMARY KEY (UID),
     CONSTRAINT fk_equip_room_UID FOREIGN KEY (UID) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -324,7 +324,7 @@ CREATE TABLE shift (
     day DATE NOT NULL,
     type  ENUM('07:00-15:00', '15:00-23:00', '23:00-07:00') NOT NULL,
     -- bool status;
-    status TINYINT(1) NOT NULL DEFAULT 0,
+    status TINYINT(1) NOT NULL DEFAULT 0 CHECK (status = 0 OR status = 1),
     PRIMARY KEY (shift_id, day, type)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -378,7 +378,7 @@ CREATE TABLE insurance_carrier (
 
 
 CREATE TABLE patient_insurance (
-    AMKA INT UNSIGNED NOT NULL,
+    AMKA VARCHAR(10) NOT NULL,
     carrier_id INT UNSIGNED NOT NULL,
     PRIMARY KEY(AMKA, carrier_id),
     CONSTRAINT fk_patient_insurance_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -394,7 +394,7 @@ CREATE TABLE costing (
     description TEXT,
     base_cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00,
     mean_hospit_time INT UNSIGNED NOT NULL DEFAULT 0,
-    PRIMARY KEY (KEN),
+    PRIMARY KEY (KEN)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -407,7 +407,7 @@ CREATE TABLE costing_coverage (
     carrier_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (KEN),
     CONSTRAINT fk_const_coverage_costing_id FOREIGN KEY (KEN) REFERENCES costing (KEN) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_const_coverage_carrier_id FOREIGN KEY (carrier_id) REFERENCES insurance_carrier (carrier_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_const_coverage_carrier_id FOREIGN KEY (carrier_id) REFERENCES insurance_carrier (carrier_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -418,7 +418,7 @@ CREATE TABLE costing_coverage (
 CREATE TABLE diagnosis (
     diag_id VARCHAR(10) NOT NULL,
     discription TEXT NOT NULL,
-    PRIMARY KEY (diag_key)
+    PRIMARY KEY (diag_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -443,7 +443,7 @@ CREATE TABLE hospitalisation (
 --
 
 CREATE TABLE patient_record (
-    AMKA INT UNSIGNED NOT NULL,
+    AMKA VARCHAR(45) NOT NULL,
     hosp_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (hosp_id),
     CONSTRAINT fk_patient_record_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -459,7 +459,7 @@ CREATE TABLE admission_diagnosis (
     diag_id VARCHAR(10) NOT NULL,
     PRIMARY KEY (hosp_id, diag_id),
     CONSTRAINT fk_adm_diag_hospitalisation_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_adm_diag_diagnosis_id FOREIGN KEY (diag_id) REFERENCES diagnosis (diag_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_adm_diag_diagnosis_id FOREIGN KEY (diag_id) REFERENCES diagnosis (diag_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -468,7 +468,7 @@ CREATE TABLE discharge_diagnosis (
     diag_id VARCHAR(10) NOT NULL,
     PRIMARY KEY (hosp_id, diag_id),
     CONSTRAINT fk_dis_diag_hospitalisation_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_dis_diag_diagnosis_id FOREIGN KEY (diag_id) REFERENCES diagnosis (diag_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_dis_diag_diagnosis_id FOREIGN KEY (diag_id) REFERENCES diagnosis (diag_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -488,7 +488,7 @@ CREATE TABLE medical_procedure (
 CREATE TABLE lab_test (
     lab_test_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     code VARCHAR(10) NOT NULL,
-    doc_id INT UNSIGNED NOT NULL,
+    doc_id VARCHAR(45) NOT NULL,
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     result TEXT NOT NULL,
     cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00,
@@ -507,7 +507,7 @@ CREATE TABLE hosp_lab_test (
     hosp_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (lab_test_id),
     CONSTRAINT fk_hosp_lab_test_lab_test_id FOREIGN KEY (lab_test_id) REFERENCES lab_test (lab_test_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_hosp_lab_test_hosp_id FOREIGN KEY (hosp_id) REFERENCES medical_procedure (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_hosp_lab_test_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -523,7 +523,7 @@ CREATE TABLE medical_act (
     cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00,
     PRIMARY KEY (med_act_id),
     CONSTRAINT fk_medical_act_med_procedure_id FOREIGN KEY (code) REFERENCES medical_procedure (code) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_medical_act_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_medical_act_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -535,7 +535,7 @@ CREATE TABLE hosp_med_act (
     hosp_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (med_act_id),
     CONSTRAINT fk_hosp_med_act_med_act_id FOREIGN KEY (med_act_id) REFERENCES medical_act (med_act_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_hosp_med_act_hospit_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_hosp_med_act_hospit_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -543,7 +543,7 @@ CREATE TABLE hosp_med_act (
 --
 
 CREATE TABLE rating (
-    AMKA INT UNSIGNED NOT NULL,
+    AMKA VARCHAR(45) NOT NULL,
     hosp_id INT UNSIGNED NOT NULL,
     medical_care TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= medical_care  AND medical_care <= 5),
     nursing_case TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= nursing_case  AND nursing_case <= 5),
@@ -552,7 +552,7 @@ CREATE TABLE rating (
     experience TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= experience  AND experience <= 5),
     PRIMARY KEY (AMKA, hosp_id),
     CONSTRAINT fk_rating_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_rating_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_rating_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -571,37 +571,37 @@ CREATE TABLE route_of_admission (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE pharmaceutical_product (
-    prod_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    pharm_prod_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     auth_country VARCHAR(100) NOT NULL,
     marketing_auth_holder VARCHAR(255) NOT NULL,
     master_file_loc VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
     phone VARCHAR(100) NOT NULL,
-    PRIMARY KEY (pharm_prod_id),
+    PRIMARY KEY (pharm_prod_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE product_act_sub (
     act_sub_id INT UNSIGNED NOT NULL,
-    prod_id INT UNSIGNED NOT NULL,
-    PRIMARY KEY (route_id),
+    pharm_prod_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (act_sub_id, pharm_prod_id),
     CONSTRAINT fk_prod_act_sub_sub_id FOREIGN KEY (act_sub_id) REFERENCES active_substance (act_sub_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_prod_act_product_id FOREIGN KEY (prod_id) REFERENCES pharmaceutical_product (prod_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_prod_act_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE product_route (
     route_id INT UNSIGNED NOT NULL,
-    prod_id INT UNSIGNED NOT NULL,
-    PRIMARY KEY (route_id),
+    pharm_prod_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (route_id, pharm_prod_id),
     CONSTRAINT fk_prod_route_route_id FOREIGN KEY (route_id) REFERENCES route_of_admission (route_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_prod_route_product_id FOREIGN KEY (prod_id) REFERENCES pharmaceutical_product (prod_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_prod_route_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 --
 -- Table structures for patient allergies 
 --
 
 CREATE TABLE patient_allergy (
-    AMKA INT UNSIGNED NOT NULL,
+    AMKA VARCHAR(45) NOT NULL,
     act_sub_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (AMKA, act_sub_id),
     CONSTRAINT fk_allergy_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -715,7 +715,6 @@ END;;
 
 
 DELIMITER ;
-
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

@@ -518,12 +518,42 @@ CREATE TABLE medical_act (
     med_act_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     type VARCHAR(45) NOT NULL,
     code VARCHAR(10) NOT NULL,
-    duration TIME NOT NULL,
+    start_datetime DATETIME NOT NULL,
+    end_datetime DATETIME NOT NULL,
     room_id INT UNSIGNED NOT NULL,
     cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00,
     PRIMARY KEY (med_act_id),
+    CHECK (start_datetime < end_datetime),
     CONSTRAINT fk_medical_act_med_procedure_id FOREIGN KEY (code) REFERENCES medical_procedure (code) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_medical_act_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for surgical act and staff assistance 
+--
+
+CREATE TABLE surgical_act (
+    med_act_id INT UNSIGNED NOT NULL,
+    primary_doc_id VARCHAR(10) NOT NULL,
+    PRIMARY KEY (med_act_id, primary_doc_id),
+    CONSTRAINT fk_surgery_med_procedure_id FOREIGN KEY (med_act_id) REFERENCES medical_act (med_act_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_surgery_primary_doc_id FOREIGN KEY (primary_doc_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE surgical_act_doctor_assistants (
+    med_act_id INT UNSIGNED NOT NULL,
+    assistant_id VARCHAR(45) NOT NULL,
+    PRIMARY KEY (med_act_id, assistant_id),
+    CONSTRAINT fk_surg_doc_surg_act_id FOREIGN KEY (med_act_id) REFERENCES surgical_act (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_surg_doc_assist_id FOREIGN KEY (assistant_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE surgical_act_nurse_assistants (
+    med_act_id INT UNSIGNED NOT NULL,
+    assistant_id VARCHAR(45) NOT NULL,
+    PRIMARY KEY (med_act_id, assistant_id),
+    CONSTRAINT fk_surg_nurse_surg_act_id FOREIGN KEY (med_act_id) REFERENCES surgical_act (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_surg_nurse_assist_id FOREIGN KEY (assistant_id) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -607,6 +637,27 @@ CREATE TABLE patient_allergy (
     CONSTRAINT fk_allergy_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_allergy_substance_id FOREIGN KEY (act_sub_id) REFERENCES active_substance (act_sub_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structures for prescription 
+--
+
+CREATE TABLE prescription (
+    doctor_id VARCHAR(45) NOT NULL,
+    patient_id VARCHAR(45) NOT NULL,
+    pharm_prod_id INT UNSIGNED NOT NULL,
+    start_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    dosage VARCHAR(255) NOT NULL,
+    frequency VARCHAR(100) NOT NULL,
+    PRIMARY KEY (doctor_id, patient_id, pharm_prod_id, start_date),
+    CONSTRAINT fk_prescription_doctor_id FOREIGN KEY (doctor_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_prescription_patient_id FOREIGN KEY (patient_id) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_prescription_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+
 
 CREATE TABLE tablename (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -713,7 +764,98 @@ CREATE TRIGGER ins_doc_shift BEFORE INSERT ON doctor_shift FOR EACH ROW BEGIN
 
 END;;
 
+-- =========================================================== 
+--                          Surgery
+-- =========================================================== 
 
+-- 
+-- Prevent two acts from taking place at the same place at the same time
+--
+
+CREATE TRIGGER ins_surgery_locality_overlap BEFORE INSERT ON surgical_act FOR EACH ROW BEGIN
+    DECLARE start_t DATETIME;
+    DECLARE end_t TIME;
+    DECLARE room_t INT UNSIGNED;
+
+    SELECT start_datetime, end_datetime, room_id INTO start_t, end_t, room_t
+    FROM medical_act
+    WHERE med_act_id = NEW.med_act_id;
+
+    IF EXISTS (
+        SELECT *
+        FROM surgical_act sa
+        INNER JOIN medical_act ma ON ma.med_act_id = sa.med_act_id
+        WHERE ma.room_id = room_t 
+        AND (ma.end_datetime > start_t AND ma.start_datetime < end_t)
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Room in use';
+    END IF;
+END;;
+
+-- 
+-- Prevent temporal overlaps when assigning staff
+--
+
+CREATE TRIGGER ins_surgery_temporality_main_doc BEFORE INSERT ON surgical_act FOR EACH ROW BEGIN
+    DECLARE start_t DATETIME;
+    DECLARE end_t TIME;
+
+    SELECT start_datetime, end_datetime INTO start_t, end_t
+    FROM medical_act
+    WHERE med_act_id = NEW.med_act_id;
+
+    IF EXISTS (
+        SELECT *
+        FROM surgical_act sa
+        INNER JOIN medical_act ma ON ma.med_act_id = sa.med_act_id
+        WHERE sa.primary_doc_id = NEW.primary_doc_id
+        AND (ma.end_datetime > start_t AND ma.start_datetime < end_t)
+    ) THEN 
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Primary doctor already assigned at given time';
+    END IF;
+END;;
+
+CREATE TRIGGER ins_surgery_temporality_assist_doc BEFORE INSERT ON surgical_act_doctor_assistants FOR EACH ROW BEGIN
+    DECLARE start_t DATETIME;
+    DECLARE end_t TIME;
+
+    SELECT start_datetime, end_datetime INTO start_t, end_t
+    FROM medical_act
+    WHERE med_act_id = NEW.med_act_id;
+
+    IF EXISTS (
+        SELECT *
+        FROM surgical_act_doctor_assistants sa
+        INNER JOIN medical_act ma1 ON ma1.med_act_id = sa.med_act_id
+        WHERE sa.assistant_id = NEW.assistant_id
+        AND (ma.end_datetime > start_t AND ma.start_datetime < end_t)
+    ) THEN 
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Assistant doctor already assigned at given time';
+    END IF;
+END;;
+
+CREATE TRIGGER ins_surgery_temporality_assist_nurse BEFORE INSERT ON surgical_act_nurse_assistants FOR EACH ROW BEGIN
+    DECLARE start_t DATETIME;
+    DECLARE end_t TIME;
+
+    SELECT start_datetime, end_datetime INTO start_t, end_t
+    FROM medical_act
+    WHERE med_act_id = NEW.med_act_id;
+
+    IF EXISTS (
+        SELECT *
+        FROM surgical_act_nurse_assistants sa
+        INNER JOIN medical_act ma1 ON ma1.med_act_id = sa.med_act_id
+        WHERE sa.assistant_id = NEW.assistant_id
+        AND (ma.end_datetime > start_t AND ma.start_datetime < end_t)
+    ) THEN 
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Assistant nurse doctor already assigned at given time';
+    END IF;
+END;;
 DELIMITER ;
 
 SET SQL_MODE=@OLD_SQL_MODE;

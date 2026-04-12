@@ -5,12 +5,24 @@ SQL script για τη δημιουργία του σχήματος της βά�
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+show count(*) warnings;
 
 DROP SCHEMA IF EXISTS ntua_db_2026;
 CREATE SCHEMA ntua_db_2026;
 USE ntua_db_2026;
 
 
+--
+--  Table structure for triage
+--
+
+CREATE TABLE triage (
+    triage_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    level TINYINT(1) UNSIGNED NOT NULL CHECK (1 <= level AND level <= 5),
+    arrival_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    symptoms TEXT NOT NULL,
+    PRIMARY KEY (triage_id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for patient
@@ -33,10 +45,10 @@ CREATE TABLE patient (
     municipality VARCHAR(45) DEFAULT NULL,
     prefecture VARCHAR(45) DEFAULT NULL,
     -- address end
-    proffesion VARCHAR(45) DEFAULT NULL,
+    profession VARCHAR(45) DEFAULT NULL,
     citizenship VARCHAR(45) DEFAULT NULL,
 
-    triage_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    triage_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (AMKA),
     CONSTRAINT fk_patient_triage FOREIGN KEY (triage_id) REFERENCES triage (triage_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -65,10 +77,9 @@ CREATE TABLE emergency_contact (
     middle_name VARCHAR(45) DEFAULT NULL,
     last_name VARCHAR(45) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
-    PRIMARY KEY (AMKA, first_name, last_name, phone_number),
+    PRIMARY KEY (patient_id, first_name, last_name, phone_number),
     CONSTRAINT fk_emergency_contact FOREIGN KEY (patient_id) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 
 --
 -- Table structure for nurse 
@@ -368,19 +379,6 @@ CREATE TABLE admin_shift (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
---  Table structure for triage
---
-
-CREATE TABLE triage (
-    triage_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    level TINYINT(1) UNSIGNED NOT NULL CHECK (1 <= level AND level <= 5),
-    arrival_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    symptoms TEXT NOT NULL,
-    PRIMARY KEY (triage_id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8;
-    
-
---
 --  Table structure for insurance carrier 
 --
 
@@ -556,18 +554,18 @@ CREATE TABLE surgical_act (
 
 CREATE TABLE surgical_act_doctor_assistants (
     med_act_id INT UNSIGNED NOT NULL,
-    assistant_id VARCHAR(45) NOT NULL,
+    assistant_id VARCHAR(10) NOT NULL,
     PRIMARY KEY (med_act_id, assistant_id),
-    CONSTRAINT fk_surg_doc_surg_act_id FOREIGN KEY (med_act_id) REFERENCES surgical_act (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_surg_doc_assist_id FOREIGN KEY (assistant_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_surg_doc_surg_act_id FOREIGN KEY (med_act_id) REFERENCES surgical_act (med_act_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_surg_doc_assist_id FOREIGN KEY (assistant_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE surgical_act_nurse_assistants (
     med_act_id INT UNSIGNED NOT NULL,
-    assistant_id VARCHAR(45) NOT NULL,
+    assistant_id VARCHAR(10) NOT NULL,
     PRIMARY KEY (med_act_id, assistant_id),
-    CONSTRAINT fk_surg_nurse_surg_act_id FOREIGN KEY (med_act_id) REFERENCES surgical_act (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_surg_nurse_assist_id FOREIGN KEY (assistant_id) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_surg_nurse_surg_act_id FOREIGN KEY (med_act_id) REFERENCES surgical_act (med_act_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_surg_nurse_assist_id FOREIGN KEY (assistant_id) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -678,7 +676,6 @@ CREATE TABLE prescribed_products (
     CONSTRAINT fk_prescr_prod_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
 --
 -- Table structures for media 
 --
@@ -695,7 +692,7 @@ CREATE TABLE doctor_media (
     doctor_id VARCHAR(10) NOT NULL,
     PRIMARY KEY (media_id, doctor_id),
     CONSTRAINT fk_doctor_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_doctor_media_entity_id FOREIGN KEY (doctor_id) REFERENCES (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT fk_doctor_media_entity_id FOREIGN KEY (doctor_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE nurse_media (
@@ -717,10 +714,10 @@ CREATE TABLE admin_media (
 
 CREATE TABLE equipment_media (
     media_id INT UNSIGNED NOT NULL,
-    equipment_id INT UNSIGNED NOT NULL,
+    equipment_id VARCHAR(128) NOT NULL,
     PRIMARY KEY (media_id, equipment_id),
     CONSTRAINT fk_equipment_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_equipment_media_entity_id FOREIGN KEY (equipment_id) REFERENCES equipment (equipment_id) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT fk_equipment_media_entity_id FOREIGN KEY (equipment_id) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE bed_media (
@@ -746,10 +743,10 @@ CREATE TABLE room_media (
 
 
 
-
--- ===============================================================================
+/*
+-- ==============================================================================
 --                                   Triggers
--- ===============================================================================
+-- ==============================================================================
 
 DELIMITER ;;
 
@@ -1015,7 +1012,7 @@ CREATE TRIGGER ins_rating BEFORE INSERT ON rating FOR EACH ROW BEGIN
 END;;
 
 DELIMITER ;
-
+*/
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

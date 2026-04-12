@@ -23,8 +23,8 @@ CREATE TABLE patient (
     last_name VARCHAR(45) NOT NULL,
     date_of_birth DATE NOT NULL,
     sex  ENUM('male', 'female', 'other') NOT NULL,
-    weight NUMERIC(5,2) NOT NULL DEFAULT 000.00,   -- in kg
-    height NUMERIC(5,2) NOT NULL DEFAULT 000.00,   -- in cm
+    weight NUMERIC(5,2) NOT NULL DEFAULT 000.00 CHECK (weight >= 0),   -- in kg
+    height NUMERIC(5,2) NOT NULL DEFAULT 000.00 CHECK (height >= 0),   -- in cm
     -- address
     street_name VARCHAR(45) DEFAULT NULL,
     street_number VARCHAR(45) DEFAULT NULL,
@@ -55,6 +55,20 @@ CREATE TABLE patient_phone (
     CONSTRAINT fk_patient_phone FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Table structure for emergency contact 
+--
+
+CREATE TABLE emergency_contact (
+    patient_id VARCHAR(10) NOT NULL,
+    first_name VARCHAR(45) NOT NULL,
+    middle_name VARCHAR(45) DEFAULT NULL,
+    last_name VARCHAR(45) NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    PRIMARY KEY (AMKA, first_name, last_name, phone_number),
+    CONSTRAINT fk_emergency_contact FOREIGN KEY (patient_id) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 --
 -- Table structure for nurse 
@@ -66,7 +80,7 @@ CREATE TABLE nurse (
     middle_name VARCHAR(45) DEFAULT NULL,
     last_name VARCHAR(45) NOT NULL,
     date_of_birth DATE NOT NULL,
-    date_of_employment DATE NOT NULL,
+    date_of_employment DATE NOT NULL CHECK (date_of_employment > date_of_birth),
     rank ENUM('Βοηθός Νοσηλευτή', 'Νοσηλευτής', 'Προϊστάμενος') NOT NULL,
     dept_name INT UNSIGNED NOT NULL,
     PRIMARY KEY (AMKA),
@@ -98,7 +112,7 @@ CREATE TABLE administrative_staff (
     middle_name VARCHAR(45) DEFAULT NULL,
     last_name VARCHAR(45) NOT NULL,
     date_of_birth DATE NOT NULL,
-    date_of_employment DATE NOT NULL,
+    date_of_employment DATE NOT NULL CHECK (date_of_employment > date_of_birth),
     role ENUM('Γραμματεία', 'Λογιστήριο', 'Ανθρώπινο Δυναμικό', 'Τεχνική Υποστήριξη') NOT NULL,
     office VARCHAR(10) NOT NULL,
     dept_name INT UNSIGNED NOT NULL,
@@ -131,7 +145,7 @@ CREATE TABLE doctor (
     middle_name VARCHAR(45) DEFAULT NULL,
     last_name VARCHAR(45) NOT NULL,
     date_of_birth DATE NOT NULL,
-    date_of_employment DATE NOT NULL,
+    date_of_employment DATE NOT NULL CHECK (date_of_employment > date_of_birth),
     license_number VARCHAR(20) NOT NULL,
     rank ENUM('Ειδικευόμενος', 'Επιμελητής Β', 'Επιμελητής Α', 'Διευθυντής') NOT NULL,
     supervisor_id VARCHAR(10) NULL,
@@ -282,7 +296,7 @@ CREATE TABLE bed (
 CREATE TABLE room (
     room_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     type ENUM('Κλίνες', 'Χειρουργική Αίθουσα', 'ΤΕΠ', 'Διαγνωστική Αίθουσα', 'Αίθουσα Αναμονής', 'Γραφείο', 'Αποθήκη') NOT NULL,
-    status ENUM('Διαθέσιμη', 'Κατειλημμένη', 'Υπό Συντήρηση') NOT NULL,
+    status ENUM('Διαθέσιμο', 'Κατειλημμένο', 'Υπό Συντήρηση') NOT NULL,
     dept_name VARCHAR(45) NOT NULL,
     PRIMARY KEY (room_id),
     CONSTRAINT fk_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -324,7 +338,7 @@ CREATE TABLE shift (
     day DATE NOT NULL,
     type  ENUM('07:00-15:00', '15:00-23:00', '23:00-07:00') NOT NULL,
     -- bool status;
-    status TINYINT(1) NOT NULL DEFAULT 0 CHECK (status = 0 OR status = 1),
+    status BOOLEAN NOT NULL DEFAULT FALSE CHECK (status = 0 OR status = 1),
     PRIMARY KEY (shift_id, day, type)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -392,7 +406,7 @@ CREATE TABLE patient_insurance (
 CREATE TABLE costing (
     KEN VARCHAR(5) NOT NULL,
     description TEXT,
-    base_cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00,
+    base_cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00 CHECK (base_cost >= 0),
     mean_hospit_time INT UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY (KEN)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -428,7 +442,7 @@ CREATE TABLE diagnosis (
 CREATE TABLE hospitalisation (
     hosp_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     admission_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    discharge_date TIMESTAMP DEFAULT NULL,
+    discharge_date TIMESTAMP DEFAULT NULL CHECK (discharge_date = NULL OR discharge_date > admission_date),
     dept_name VARCHAR(45) NOT NULL,
     bed_id INT UNSIGNED NOT NULL,
     KEN VARCHAR(7) NOT NULL,
@@ -491,7 +505,7 @@ CREATE TABLE lab_test (
     doc_id VARCHAR(45) NOT NULL,
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     result TEXT NOT NULL,
-    cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00,
+    cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00 CHECK (cost >= 0),
     PRIMARY KEY (lab_test_id),
     CONSTRAINT fk_lab_test_med_procedure_id FOREIGN KEY (code) REFERENCES medical_procedure (code) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_lab_test_doctor_id FOREIGN KEY (doc_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -521,7 +535,7 @@ CREATE TABLE medical_act (
     start_datetime DATETIME NOT NULL,
     end_datetime DATETIME NOT NULL,
     room_id INT UNSIGNED NOT NULL,
-    cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00,
+    cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00 CHECK (cost >= 0),
     PRIMARY KEY (med_act_id),
     CHECK (start_datetime < end_datetime),
     CONSTRAINT fk_medical_act_med_procedure_id FOREIGN KEY (code) REFERENCES medical_procedure (code) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -631,7 +645,7 @@ CREATE TABLE product_route (
 --
 
 CREATE TABLE patient_allergy (
-    AMKA VARCHAR(45) NOT NULL,
+    AMKA VARCHAR(10) NOT NULL,
     act_sub_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (AMKA, act_sub_id),
     CONSTRAINT fk_allergy_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -643,19 +657,26 @@ CREATE TABLE patient_allergy (
 --
 
 CREATE TABLE prescription (
-    doctor_id VARCHAR(45) NOT NULL,
-    patient_id VARCHAR(45) NOT NULL,
-    pharm_prod_id INT UNSIGNED NOT NULL,
-    start_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    dosage VARCHAR(255) NOT NULL,
-    frequency VARCHAR(100) NOT NULL,
-    PRIMARY KEY (doctor_id, patient_id, pharm_prod_id, start_date),
+    prescription_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    doctor_id VARCHAR(10) NOT NULL,
+    patient_id VARCHAR(10) NOT NULL,
+    PRIMARY KEY (prescription_id),
     CONSTRAINT fk_prescription_doctor_id FOREIGN KEY (doctor_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_prescription_patient_id FOREIGN KEY (patient_id) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_prescription_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT fk_prescription_patient_id FOREIGN KEY (patient_id) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+CREATE TABLE prescribed_products (
+    prescription_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    pharm_prod_id INT UNSIGNED NOT NULL,
+    start_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    end_date DATE NOT NULL CHECK (end_date >= start_date),
+    dosage VARCHAR(255) NOT NULL,
+    frequency VARCHAR(100) NOT NULL,
+    PRIMARY KEY (prescription_id, pharm_prod_id, start_date),
+    CONSTRAINT fk_prescr_prod_prescription_id FOREIGN KEY (prescription_id) REFERENCES prescription (prescription_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_prescr_prod_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 
@@ -673,6 +694,23 @@ CREATE TABLE tablename (
 --                                   Triggers
 -- ===============================================================================
 
+DELIMITER ;;
+
+-- ===============================================================================
+--                                  Hospitalisation 
+-- ===============================================================================
+
+CREATE TRIGGER upd_hospitilisation_discharge_date BEFORE UPDATE ON hospitalisation FOR EACH ROW BEGIN
+    IF NEW.discharge_date NOT NULL THEN
+        IF NEW.admission_date > NEW.discharge_date THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Admission date must precede discharge date';
+        END IF;
+    END IF;
+END;;
+
+
+
 --
 -- Shift verification triggers
 -- A shift may have status = 1 if and only if it has
@@ -681,13 +719,12 @@ CREATE TABLE tablename (
 --          >= 2 admin staff
 --
 
-DELIMITER ;;
 CREATE TRIGGER upd_shift_validity BEFORE UPDATE ON shift FOR EACH ROW BEGIN
     DECLARE d_cnt INT DEFAULT 0;
     DECLARE n_cnt INT DEFAULT 0;
     DECLARE a_cnt INT DEFAULT 0;
 
-    IF NEW.status = 1 ΤΗΕΝ 
+    IF NEW.status = TRUE ΤΗΕΝ 
         SELECT COUNT(*) INTO d_cnt
         FROM doctor_shift WHERE shift_id = NEW.shift_id;
 
@@ -712,7 +749,7 @@ CREATE TRIGGER del_doctor_shift BEFORE DELETE ON doctor_shift FOR EACH ROW BEGIN
 
     if cnt < 3 THEN
         UPDATE shift
-        SET status = 0
+        SET status = FALSE 
         WHERE shift_if = OLD.shift_if;
     END IF;
 END;;
@@ -725,7 +762,7 @@ CREATE TRIGGER del_nurse_shift BEFORE DELETE ON nurse_shift FOR EACH ROW BEGIN
 
     if cnt < 6 THEN
         UPDATE shift
-        SET status = 0
+        SET status = FALSE 
         WHERE shift_if = OLD.shift_if;
     END IF;
 END;;
@@ -738,7 +775,7 @@ CREATE TRIGGER del_admin_shift BEFORE DELETE ON admin_shift FOR EACH ROW BEGIN
 
     if cnt < 2 THEN
         UPDATE shift
-        SET status = 0
+        SET status = FALSE 
         WHERE shift_if = OLD.shift_if;
     END IF;
 END;;
@@ -762,6 +799,50 @@ CREATE TRIGGER ins_doc_shift BEFORE INSERT ON doctor_shift FOR EACH ROW BEGIN
     WHERE d.AMKA = NEW.AMKA
       AND DATE_ADD(NEW.day);
 
+END;;
+
+-- =========================================================== 
+--                        Prescriptions 
+-- =========================================================== 
+
+CREATE TRIGGER ins_prescribed_prod_patient_allergy BEFORE INSERT ON prescribed_products FOR EACH ROW BEGIN
+    DECLARE patient_id_t VARCHAR(10);
+
+    SELECT patient_id INTO patient_id_t
+    FROM prescription
+    WHERE prescription_id = NEW.prescription_id;
+
+    IF EXISTS (
+        SELECT *
+        FROM product_act_sub pas
+        INNER JOIN patient_allery pa ON pas.act_sub_id = pa.act_sub_id
+        WHERE pa.AMKA = patient_id 
+          AND pas.act_sub_id = NEW.act_sub_id
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Patient allergic to prescribed active substance';
+    END IF;
+END;;
+
+
+
+CREATE TRIGGER upd_prescribed_prod_patient_allergy BEFORE UPDATE ON prescribed_products FOR EACH ROW BEGIN
+    DECLARE patient_id_t VARCHAR(10);
+
+    SELECT patient_id INTO patient_id_t
+    FROM prescription
+    WHERE prescription_id = NEW.prescription_id;
+
+    IF EXISTS (
+        SELECT *
+        FROM product_act_sub pas
+        INNER JOIN patient_allery pa ON pas.act_sub_id = pa.act_sub_id
+        WHERE pa.AMKA = patient_id 
+          AND pas.act_sub_id = NEW.act_sub_id
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Patient allergic to prescribed active substance';
+    END IF;
 END;;
 
 -- =========================================================== 

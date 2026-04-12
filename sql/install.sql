@@ -679,9 +679,66 @@ CREATE TABLE prescribed_products (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+--
+-- Table structures for media 
+--
 
-CREATE TABLE tablename (
+CREATE TABLE media (
+    media_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    path VARCHAR(255) NOT NULL,
+    description TEXT,
+    PRIMARY KEY (media_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE doctor_media (
+    media_id INT UNSIGNED NOT NULL,
+    doctor_id VARCHAR(10) NOT NULL,
+    PRIMARY KEY (media_id, doctor_id),
+    CONSTRAINT fk_doctor_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_doctor_media_entity_id FOREIGN KEY (doctor_id) REFERENCES (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE nurse_media (
+    media_id INT UNSIGNED NOT NULL,
+    nurse_id VARCHAR(10) NOT NULL,
+    PRIMARY KEY (media_id, nurse_id),
+    CONSTRAINT fk_nurse_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_nurse_media_entity_id FOREIGN KEY (nurse_id) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE admin_media (
+    media_id INT UNSIGNED NOT NULL,
+    admin_id VARCHAR(10) NOT NULL,
+    PRIMARY KEY (media_id, admin_id),
+    CONSTRAINT fk_admin_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_admin_media_entity_id FOREIGN KEY (admin_id) REFERENCES administrative_staff (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE equipment_media (
+    media_id INT UNSIGNED NOT NULL,
+    equipment_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (media_id, equipment_id),
+    CONSTRAINT fk_equipment_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_equipment_media_entity_id FOREIGN KEY (equipment_id) REFERENCES equipment (equipment_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE bed_media (
+    media_id INT UNSIGNED NOT NULL,
+    bed_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (media_id, bed_id),
+    CONSTRAINT fk_bed_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_bed_media_entity_id FOREIGN KEY (bed_id) REFERENCES bed (bed_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE room_media (
+    media_id INT UNSIGNED NOT NULL,
+    room_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (media_id, room_id),
+    CONSTRAINT fk_room_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_room_media_entity_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 
 
@@ -696,11 +753,11 @@ CREATE TABLE tablename (
 
 DELIMITER ;;
 
--- ===============================================================================
---                                  Hospitalisation 
--- ===============================================================================
+-- =========================================================== 
+--                      Hospitalisation 
+-- =========================================================== 
 
-CREATE TRIGGER upd_hospitilisation_discharge_date BEFORE UPDATE ON hospitalisation FOR EACH ROW BEGIN
+CREATE TRIGGER upd_hospitalisation_discharge_date BEFORE UPDATE ON hospitalisation FOR EACH ROW BEGIN
     IF NEW.discharge_date NOT NULL THEN
         IF NEW.admission_date > NEW.discharge_date THEN
             SIGNAL SQLSTATE '45000'
@@ -937,6 +994,26 @@ CREATE TRIGGER ins_surgery_temporality_assist_nurse BEFORE INSERT ON surgical_ac
         SET MESSAGE_TEXT = 'Assistant nurse doctor already assigned at given time';
     END IF;
 END;;
+
+
+-- =========================================================== 
+--                          Rating 
+-- =========================================================== 
+-- A rating can only be given after a hospitalisation has ended
+
+CREATE TRIGGER ins_rating BEFORE INSERT ON rating FOR EACH ROW BEGIN
+    DECLARE discharge_t TIMESTAMP; 
+
+    SELECT discharge_date INTO discharge_t
+    FROM hospitalisation
+    WHERE hosp_id = NEW.hosp_id;
+
+    IF discharge_t IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Hospitalisation in progress; cannot assign rating';
+    END IF;
+END;;
+
 DELIMITER ;
 
 SET SQL_MODE=@OLD_SQL_MODE;

@@ -198,65 +198,6 @@ CREATE TABLE doc_spec (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
---
--- Triggers to prevent circular doctor supervision
---
-
-DELIMITER ;;
-CREATE TRIGGER ins_doc_supervisor BEFORE INSERT ON doctor FOR EACH ROW BEGIN
-    IF NEW.supervisor_id IS NOT NULL THEN
-
-        SET @supervisee_id = NEW.AMKA;
-        SET @supervisor_id = NEW.supervisor_id;
-        SET @cycle_detection = 0;
-
-        WITH RECURSIVE supervision_cycle AS (
-            SELECT AMKA, supervisor_id
-            FROM doctor
-            WHERE AMKA = @supervisee_id
-            UNION ALL
-            SELECT doc.AMKA, doc.supervisor_id
-            FROM doctor doc
-            JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervisor_id
-        )
-        SELECT COUNT(*) INTO @cycle_detection
-        FROM supervision_cycle
-        WHERE AMKA = @supervisor_id;
-
-        IF @cycle_detection > 0 THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
-        END IF;
-    END IF;
-END;;
-
-CREATE TRIGGER upd_doc_supervisor BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
-    IF NEW.supervisor_id IS NOT NULL THEN
-
-        SET @supervisee_id = NEW.AMKA;
-        SET @supervisor_id = NEW.supervisor_id;
-        SET @cycle_detection = 0;
-
-        WITH RECURSIVE supervision_cycle AS (
-            SELECT AMKA, supervisor_id
-            FROM doctor
-            WHERE AMKA = @supervisee_id
-            UNION ALL
-            SELECT doc.AMKA, doc.supervisor_id
-            FROM doctor doc
-            JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervisor_id
-        )
-        SELECT COUNT(*) INTO @cycle_detection
-        FROM supervision_cycle
-        WHERE AMKA = @supervisor_id;
-
-        IF @cycle_detection > 0 THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
-        END IF;
-    END IF;
-END;;
-DELIMITER ;
 
 --
 -- Table structure for department
@@ -743,13 +684,71 @@ CREATE TABLE room_media (
 
 
 
-/*
 -- ==============================================================================
 --                                   Triggers
 -- ==============================================================================
 
 DELIMITER ;;
 
+-- =========================================================== 
+--                     Doctor Supervison
+-- =========================================================== 
+
+CREATE TRIGGER ins_doc_supervisor BEFORE INSERT ON doctor FOR EACH ROW BEGIN
+    IF NEW.supervisor_id IS NOT NULL THEN
+
+        SET @supervisee_id = NEW.AMKA;
+        SET @supervisor_id = NEW.supervisor_id;
+        SET @cycle_detection = 0;
+
+        WITH RECURSIVE supervision_cycle AS (
+            SELECT AMKA, supervisor_id
+            FROM doctor
+            WHERE AMKA = @supervisee_id
+            UNION ALL
+            SELECT doc.AMKA, doc.supervisor_id
+            FROM doctor doc
+            JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervisor_id
+        )
+        SELECT COUNT(*) INTO @cycle_detection
+        FROM supervision_cycle
+        WHERE AMKA = @supervisor_id;
+
+        IF @cycle_detection > 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
+        END IF;
+    END IF;
+END;;
+
+CREATE TRIGGER upd_doc_supervisor BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
+    IF NEW.supervisor_id IS NOT NULL THEN
+
+        SET @supervisee_id = NEW.AMKA;
+        SET @supervisor_id = NEW.supervisor_id;
+        SET @cycle_detection = 0;
+
+        WITH RECURSIVE supervision_cycle AS (
+            SELECT AMKA, supervisor_id
+            FROM doctor
+            WHERE AMKA = @supervisee_id
+            UNION ALL
+            SELECT doc.AMKA, doc.supervisor_id
+            FROM doctor doc
+            JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervisor_id
+        )
+        SELECT COUNT(*) INTO @cycle_detection
+        FROM supervision_cycle
+        WHERE AMKA = @supervisor_id;
+
+        IF @cycle_detection > 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
+        END IF;
+    END IF;
+END;;
+
+/*
 -- =========================================================== 
 --                      Hospitalisation 
 -- =========================================================== 
@@ -970,6 +969,18 @@ CREATE TRIGGER ins_surgery_temporality_assist_doc BEFORE INSERT ON surgical_act_
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Assistant doctor already assigned at given time';
     END IF;
+
+    DECLARE primary_doc_t VARCHAR(10);
+
+    -- Prevent insertion if doctor is already primary doctor of act
+    SELECT primary_doc_id INTO 
+    FROM surgical_act
+    WHERE med_act_id = NEW.med_act_id;
+
+    IF primary_doc_t = NEW.assistant_id THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Assistant doctor already assigned as primary doctor';
+    END IF;
 END;;
 
 CREATE TRIGGER ins_surgery_temporality_assist_nurse BEFORE INSERT ON surgical_act_nurse_assistants FOR EACH ROW BEGIN
@@ -1011,8 +1022,9 @@ CREATE TRIGGER ins_rating BEFORE INSERT ON rating FOR EACH ROW BEGIN
     END IF;
 END;;
 
-DELIMITER ;
 */
+DELIMITER ;
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

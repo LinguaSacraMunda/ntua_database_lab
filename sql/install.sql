@@ -290,8 +290,9 @@ CREATE TABLE shift (
     day DATE NOT NULL,
     type  ENUM('07:00-15:00', '15:00-23:00', '23:00-07:00') NOT NULL,
     -- bool status;
-    status BOOLEAN NOT NULL DEFAULT FALSE CHECK (status = 0 OR status = 1),
-    PRIMARY KEY (shift_id, day, type)
+    status BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (shift_id),
+    UNIQUE (day, type)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -748,17 +749,15 @@ CREATE TRIGGER upd_doc_supervisor BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
     END IF;
 END;;
 
-/*
 -- =========================================================== 
 --                      Hospitalisation 
 -- =========================================================== 
 
 CREATE TRIGGER upd_hospitalisation_discharge_date BEFORE UPDATE ON hospitalisation FOR EACH ROW BEGIN
-    IF NEW.discharge_date NOT NULL THEN
-        IF NEW.admission_date > NEW.discharge_date THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Admission date must precede discharge date';
-        END IF;
+    IF NEW.discharge_date IS NOT NULL 
+        AND NEW.admission_date > NEW.discharge_date THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Admission date must precede discharge date';
     END IF;
 END;;
 
@@ -770,14 +769,17 @@ END;;
 --          >= 3 doctors     AND
 --          >= 6 nurses      AND
 --          >= 2 admin staff
---
+-- AND if a junior doctor is part of a shift, 
+--     then at least one senior doctor must be present
 
 CREATE TRIGGER upd_shift_validity BEFORE UPDATE ON shift FOR EACH ROW BEGIN
     DECLARE d_cnt INT DEFAULT 0;
     DECLARE n_cnt INT DEFAULT 0;
     DECLARE a_cnt INT DEFAULT 0;
+    DECLARE jr_cnt INT DEFAULT 0;
+    DECLARE sr_cnt INT DEFAULT 0;
 
-    IF NEW.status = TRUE ΤΗΕΝ 
+    IF NEW.status = TRUE THEN 
         SELECT COUNT(*) INTO d_cnt
         FROM doctor_shift WHERE shift_id = NEW.shift_id;
 
@@ -791,11 +793,31 @@ CREATE TRIGGER upd_shift_validity BEFORE UPDATE ON shift FOR EACH ROW BEGIN
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Shift does not meet minimum staffing requirements';
         END IF;
+
+        SELECT COUNT(*) INTO jr_cnt
+        FROM doctor_shift ds
+        INNER JOIN doctor d ON ds.AMKA = d.AMKA
+        WHERE ds.shift_id = NEW.shift_id
+          AND d.rank = 'Ειδικευόμενος';
+        
+        SELECT COUNT(*) INTO sr_cnt
+        FROM doctor_shift ds
+        INNER JOIN doctor d ON ds.AMKA = d.AMKA
+        WHERE ds.shift_id = NEW.shift_id
+          AND d.rank IN ('Επιμελητής Α', 'Διευθυντής');
+
+        IF jr_cnt > 0 AND sr_cnt = 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Shift with junior doctor should have at least one senior doctor assigned';
+        END IF;
+
     END IF;
 END;;
 
-CREATE TRIGGER del_doctor_shift BEFORE DELETE ON doctor_shift FOR EACH ROW BEGIN
+CREATE TRIGGER del_doctor_shift_num BEFORE DELETE ON doctor_shift FOR EACH ROW BEGIN
     DECLARE cnt INT DEFAULT 0;
+    DECLARE jr_cnt INT DEFAULT 0;
+    DECLARE sr_cnt INT DEFAULT 0;
 
     SELECT COUNT(*) INTO cnt
     from doctor_shift WHERE shift_id = OLD.shift_id;
@@ -803,11 +825,29 @@ CREATE TRIGGER del_doctor_shift BEFORE DELETE ON doctor_shift FOR EACH ROW BEGIN
     if cnt < 3 THEN
         UPDATE shift
         SET status = FALSE 
-        WHERE shift_if = OLD.shift_if;
+        WHERE shift_id = OLD.shift_id;
+    END IF;
+
+    SELECT COUNT(*) INTO jr_cnt
+    FROM doctor_shift ds
+    INNER JOIN doctor d ON ds.AMKA = d.AMKA
+    WHERE ds.shift_id = NEW.shift_id
+        AND d.rank = 'Ειδικευόμενος';
+    
+    SELECT COUNT(*) INTO sr_cnt
+    FROM doctor_shift ds
+    INNER JOIN doctor d ON ds.AMKA = d.AMKA
+    WHERE ds.shift_id = NEW.shift_id
+        AND d.rank IN ('Επιμελητής Α', 'Διευθυντής');
+
+    IF jr_cnt > 0 AND sr_cnt = 0 THEN
+        UPDATE shift
+        SET status = FALSE 
+        WHERE shift_id = OLD.shift_id;
     END IF;
 END;;
 
-CREATE TRIGGER del_nurse_shift BEFORE DELETE ON nurse_shift FOR EACH ROW BEGIN
+CREATE TRIGGER del_nurse_shift_num BEFORE DELETE ON nurse_shift FOR EACH ROW BEGIN
     DECLARE cnt INT DEFAULT 0;
 
     SELECT COUNT(*) INTO cnt
@@ -816,11 +856,11 @@ CREATE TRIGGER del_nurse_shift BEFORE DELETE ON nurse_shift FOR EACH ROW BEGIN
     if cnt < 6 THEN
         UPDATE shift
         SET status = FALSE 
-        WHERE shift_if = OLD.shift_if;
+        WHERE shift_id = OLD.shift_id;
     END IF;
 END;;
 
-CREATE TRIGGER del_admin_shift BEFORE DELETE ON admin_shift FOR EACH ROW BEGIN
+CREATE TRIGGER del_admin_shift_num BEFORE DELETE ON admin_shift FOR EACH ROW BEGIN
     DECLARE cnt INT DEFAULT 0;
 
     SELECT COUNT(*) INTO cnt
@@ -829,14 +869,9 @@ CREATE TRIGGER del_admin_shift BEFORE DELETE ON admin_shift FOR EACH ROW BEGIN
     if cnt < 2 THEN
         UPDATE shift
         SET status = FALSE 
-        WHERE shift_if = OLD.shift_if;
+        WHERE shift_id = OLD.shift_id;
     END IF;
 END;;
-
--- AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
---                          TODO
--- AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
 
 --
 -- Additional restrictions
@@ -844,16 +879,235 @@ END;;
 -- ~ no staff member may have > 3 consecutive night shifts
 --
 
-CREATE TRIGGER ins_doc_shift BEFORE INSERT ON doctor_shift FOR EACH ROW BEGIN
-    SELECT *
-    FROM doctor_shift ds
-    INNER JOIN shift s on ds.shift_id  = s.shift_id
-    INNER JOIN doctor d on ds.AMKA = d.AMKA
-    WHERE d.AMKA = NEW.AMKA
-      AND DATE_ADD(NEW.day);
+CREATE TRIGGER ins_consecutive_doctor_shift BEFORE INSERT ON doctor_shift FOR EACH ROW BEGIN
+    DECLARE day_t DATE;
+    DECLARE type_t INT;
+    DECLARE cnt INT DEFAULT 0;
 
+    SELECT day, type+0 INTO day_t, type_t
+    FROM shift
+    WHERE shift_id = NEW.shift_id; 
+
+    IF type_t = 3 THEN
+
+        SELECT COUNT(*) INTO cnt
+        FROM shift s
+        INNER JOIN doctor_shift ds ON ds.shift_id = s.shift_id
+        WHERE ds.AMKA = NEW.AMKA
+          AND s.day >= DATE_SUB(day_t, INTERVAL 3 DAY)
+          AND s.type+0 = 3;
+
+        IF cnt >= 3 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Staff member cannot be assigned to > 3 consecutive shifts';
+        END IF;
+    END IF;
+
+    IF EXISTS (
+        SELECT *
+        FROM doctor_shift ds
+        INNER JOIN shift s ON ds.shift_id = s.shift_id
+        WHERE ds.AMKA = NEW.AMKA
+          AND (
+                ( -- same day: previous of next shift exist
+                    s.day = day_t
+                    AND (s.type+0 = type_t - 1 OR s.type+0 = type_t + 1)
+                )
+            OR
+                ( -- previous night and current morning
+                    s.day = DATE_SUB(day_t, INTERVAL 1 DAY)
+                    AND s.type+0 = 3
+                    AND type_t = 1
+                )
+            OR
+                ( -- current night and next morning
+                    s.day = DATE_ADD(day_t, INTERVAL 1 DAY)
+                    AND s.type = 1
+                    AND type_t = 3
+                )
+            )
+    ) THEN 
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Staff member cannot be assigned to consecutive shifts';
+    END IF;
 END;;
 
+CREATE TRIGGER ins_consecutive_nurse_shift BEFORE INSERT ON nurse_shift FOR EACH ROW BEGIN
+    DECLARE day_t DATE;
+    DECLARE type_t INT;
+    DECLARE cnt INT DEFAULT 0;
+
+    SELECT day, type+0 INTO day_t, type_t
+    FROM shift
+    WHERE shift_id = NEW.shift_id; 
+
+    IF type_t = 3 THEN
+
+        SELECT COUNT(*) INTO cnt
+        FROM shift s
+        INNER JOIN nurse_shift ds ON ds.shift_id = s.shift_id
+        WHERE ds.AMKA = NEW.AMKA
+          AND s.day >= DATE_SUB(day_t, INTERVAL 3 DAY)
+          AND s.type+0 = 3;
+
+        IF cnt >= 3 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Staff member cannot be assigned to > 3 consecutive shifts';
+        END IF;
+    END IF;
+
+    IF EXISTS (
+        SELECT *
+        FROM nurse_shift ds
+        INNER JOIN shift s ON ds.shift_id = s.shift_id
+        WHERE ds.AMKA = NEW.AMKA
+          AND (
+                ( -- same day: previous of next shift exist
+                    s.day = day_t
+                    AND (s.type+0 = type_t - 1 OR s.type+0 = type_t + 1)
+                )
+            OR
+                ( -- previous night and current morning
+                    s.day = DATE_SUB(day_t, INTERVAL 1 DAY)
+                    AND s.type+0 = 3
+                    AND type_t = 1
+                )
+            OR
+                ( -- current night and next morning
+                    s.day = DATE_ADD(day_t, INTERVAL 1 DAY)
+                    AND s.type = 1
+                    AND type_t = 3
+                )
+            )
+    ) THEN 
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Staff member cannot be assigned to consecutive shifts';
+    END IF;
+END;;
+
+CREATE TRIGGER ins_consecutive_admin_shift BEFORE INSERT ON admin_shift FOR EACH ROW BEGIN
+    DECLARE day_t DATE;
+    DECLARE type_t INT;
+    DECLARE cnt INT DEFAULT 0;
+
+    SELECT day, type+0 INTO day_t, type_t
+    FROM shift
+    WHERE shift_id = NEW.shift_id; 
+
+    IF type_t = 3 THEN
+
+        SELECT COUNT(*) INTO cnt
+        FROM shift s
+        INNER JOIN admin_shift ds ON ds.shift_id = s.shift_id
+        WHERE ds.AMKA = NEW.AMKA
+          AND s.day >= DATE_SUB(day_t, INTERVAL 3 DAY)
+          AND s.type+0 = 3;
+
+        IF cnt >= 3 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Staff member cannot be assigned to > 3 consecutive shifts';
+        END IF;
+    END IF;
+
+    IF EXISTS (
+        SELECT *
+        FROM admin_shift ds
+        INNER JOIN shift s ON ds.shift_id = s.shift_id
+        WHERE ds.AMKA = NEW.AMKA
+          AND (
+                ( -- same day: previous of next shift exist
+                    s.day = day_t
+                    AND (s.type+0 = type_t - 1 OR s.type+0 = type_t + 1)
+                )
+            OR
+                ( -- previous night and current morning
+                    s.day = DATE_SUB(day_t, INTERVAL 1 DAY)
+                    AND s.type+0 = 3
+                    AND type_t = 1
+                )
+            OR
+                ( -- current night and next morning
+                    s.day = DATE_ADD(day_t, INTERVAL 1 DAY)
+                    AND s.type = 1
+                    AND type_t = 3
+                )
+            )
+    ) THEN 
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Staff member cannot be assigned to consecutive shifts';
+    END IF;
+END;;
+
+--
+-- Monthly shift amount limit 
+-- ~ doctors: 15
+-- ~ nurses: 20
+-- ~ admin: 25
+--
+
+CREATE TRIGGER ins_doctor_monthly_shift_lim BEFORE INSERT ON TABLE doctor_shift FOR EACH ROW BEGIN
+    DECLARE date_t DATE;
+    DECLARE cnt INT DEFAULT 0;
+
+    SELECT day INTO date_t
+    FROM shift
+    WHERE shift_id = NEW.shift_id;
+
+    SELECT COUNT(*) INTO cnt
+    FROM doctor_shift ds
+    INNER JOIN shift s ON ds.shift_id = s.shift_id
+    WHERE ds.AMKA = NEW.AMKA
+      AND YEAR(s.day) = YEAR(date_t)
+      AND MONTH(s.day) = MONTH(date_t);
+
+    IF cnt >= 15 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Doctors may be assigned to a maximum of 15 shifts per month';
+    END IF;
+END;;
+
+CREATE TRIGGER ins_nurse_monthly_shift_lim BEFORE INSERT ON TABLE nurse_shift FOR EACH ROW BEGIN
+    DECLARE date_t DATE;
+    DECLARE cnt INT DEFAULT 0;
+
+    SELECT day INTO date_t
+    FROM shift
+    WHERE shift_id = NEW.shift_id;
+
+    SELECT COUNT(*) INTO cnt
+    FROM nurse_shift ds
+    INNER JOIN shift s ON ds.shift_id = s.shift_id
+    WHERE ds.AMKA = NEW.AMKA
+      AND YEAR(s.day) = YEAR(date_t)
+      AND MONTH(s.day) = MONTH(date_t);
+
+    IF cnt >= 20 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Nurses may be assigned to a maximum of 20 shifts per month';
+    END IF;
+END;;
+
+CREATE TRIGGER ins_admin_monthly_shift_lim BEFORE INSERT ON TABLE admin_shift FOR EACH ROW BEGIN
+    DECLARE date_t DATE;
+    DECLARE cnt INT DEFAULT 0;
+
+    SELECT day INTO date_t
+    FROM shift
+    WHERE shift_id = NEW.shift_id;
+
+    SELECT COUNT(*) INTO cnt
+    FROM admin_shift ds
+    INNER JOIN shift s ON ds.shift_id = s.shift_id
+    WHERE ds.AMKA = NEW.AMKA
+      AND YEAR(s.day) = YEAR(date_t)
+      AND MONTH(s.day) = MONTH(date_t);
+
+    IF cnt >= 25 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'administrative staff may be assigned to a maximum of 25 shifts per month';
+    END IF;
+END;;
+/*
 -- =========================================================== 
 --                        Prescriptions 
 -- =========================================================== 

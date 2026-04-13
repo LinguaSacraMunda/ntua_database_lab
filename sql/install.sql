@@ -814,7 +814,7 @@ CREATE TRIGGER upd_shift_validity BEFORE UPDATE ON shift FOR EACH ROW BEGIN
     END IF;
 END;;
 
-CREATE TRIGGER del_doctor_shift_num BEFORE DELETE ON doctor_shift FOR EACH ROW BEGIN
+CREATE TRIGGER del_doctor_shift BEFORE DELETE ON doctor_shift FOR EACH ROW BEGIN
     DECLARE cnt INT DEFAULT 0;
     DECLARE jr_cnt INT DEFAULT 0;
     DECLARE sr_cnt INT DEFAULT 0;
@@ -831,13 +831,13 @@ CREATE TRIGGER del_doctor_shift_num BEFORE DELETE ON doctor_shift FOR EACH ROW B
     SELECT COUNT(*) INTO jr_cnt
     FROM doctor_shift ds
     INNER JOIN doctor d ON ds.AMKA = d.AMKA
-    WHERE ds.shift_id = NEW.shift_id
+    WHERE ds.shift_id = OLD.shift_id
         AND d.rank = 'Ειδικευόμενος';
     
     SELECT COUNT(*) INTO sr_cnt
     FROM doctor_shift ds
     INNER JOIN doctor d ON ds.AMKA = d.AMKA
-    WHERE ds.shift_id = NEW.shift_id
+    WHERE ds.shift_id = OLD.shift_id
         AND d.rank IN ('Επιμελητής Α', 'Διευθυντής');
 
     IF jr_cnt > 0 AND sr_cnt = 0 THEN
@@ -847,7 +847,7 @@ CREATE TRIGGER del_doctor_shift_num BEFORE DELETE ON doctor_shift FOR EACH ROW B
     END IF;
 END;;
 
-CREATE TRIGGER del_nurse_shift_num BEFORE DELETE ON nurse_shift FOR EACH ROW BEGIN
+CREATE TRIGGER del_nurse_shift BEFORE DELETE ON nurse_shift FOR EACH ROW BEGIN
     DECLARE cnt INT DEFAULT 0;
 
     SELECT COUNT(*) INTO cnt
@@ -860,7 +860,7 @@ CREATE TRIGGER del_nurse_shift_num BEFORE DELETE ON nurse_shift FOR EACH ROW BEG
     END IF;
 END;;
 
-CREATE TRIGGER del_admin_shift_num BEFORE DELETE ON admin_shift FOR EACH ROW BEGIN
+CREATE TRIGGER del_admin_shift BEFORE DELETE ON admin_shift FOR EACH ROW BEGIN
     DECLARE cnt INT DEFAULT 0;
 
     SELECT COUNT(*) INTO cnt
@@ -1045,7 +1045,7 @@ END;;
 -- ~ admin: 25
 --
 
-CREATE TRIGGER ins_doctor_monthly_shift_lim BEFORE INSERT ON TABLE doctor_shift FOR EACH ROW BEGIN
+CREATE TRIGGER ins_doctor_monthly_shift_lim BEFORE INSERT ON doctor_shift FOR EACH ROW BEGIN
     DECLARE date_t DATE;
     DECLARE cnt INT DEFAULT 0;
 
@@ -1066,7 +1066,7 @@ CREATE TRIGGER ins_doctor_monthly_shift_lim BEFORE INSERT ON TABLE doctor_shift 
     END IF;
 END;;
 
-CREATE TRIGGER ins_nurse_monthly_shift_lim BEFORE INSERT ON TABLE nurse_shift FOR EACH ROW BEGIN
+CREATE TRIGGER ins_nurse_monthly_shift_lim BEFORE INSERT ON nurse_shift FOR EACH ROW BEGIN
     DECLARE date_t DATE;
     DECLARE cnt INT DEFAULT 0;
 
@@ -1087,7 +1087,7 @@ CREATE TRIGGER ins_nurse_monthly_shift_lim BEFORE INSERT ON TABLE nurse_shift FO
     END IF;
 END;;
 
-CREATE TRIGGER ins_admin_monthly_shift_lim BEFORE INSERT ON TABLE admin_shift FOR EACH ROW BEGIN
+CREATE TRIGGER ins_admin_monthly_shift_lim BEFORE INSERT ON admin_shift FOR EACH ROW BEGIN
     DECLARE date_t DATE;
     DECLARE cnt INT DEFAULT 0;
 

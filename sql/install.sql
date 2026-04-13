@@ -5,7 +5,7 @@ SQL script για τη δημιουργία του σχήματος της βά�
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
-show count(*) warnings;
+-- show count(*) warnings;
 
 DROP SCHEMA IF EXISTS ntua_db_2026;
 CREATE SCHEMA ntua_db_2026;
@@ -695,7 +695,7 @@ DELIMITER ;;
 --                     Doctor Supervison
 -- =========================================================== 
 
-CREATE TRIGGER ins_doc_supervisor BEFORE INSERT ON doctor FOR EACH ROW BEGIN
+CREATE TRIGGER ins_doc_supervisor_cycle BEFORE INSERT ON doctor FOR EACH ROW BEGIN
     IF NEW.supervisor_id IS NOT NULL THEN
 
         SET @supervisee_id = NEW.AMKA;
@@ -721,34 +721,89 @@ CREATE TRIGGER ins_doc_supervisor BEFORE INSERT ON doctor FOR EACH ROW BEGIN
         END IF;
     END IF;
 END;;
+
+CREATE TRIGGER upd_doc_supervisor_cycle BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
+    IF NEW.supervisor_id IS NOT NULL THEN
+
+        SET @supervisee_id = NEW.AMKA;
+        SET @supervisor_id = NEW.supervisor_id;
+        SET @cycle_detection = 0;
+
+        WITH RECURSIVE supervision_cycle AS (
+            SELECT AMKA, supervisor_id
+            FROM doctor
+            WHERE AMKA = @supervisee_id
+            UNION ALL
+            SELECT doc.AMKA, doc.supervisor_id
+            FROM doctor doc
+            JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervisor_id
+        )
+        SELECT COUNT(*) INTO @cycle_detection
+        FROM supervision_cycle
+        WHERE AMKA = @supervisor_id;
+
+        IF @cycle_detection > 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
+        END IF;
+    END IF;
+END;;
+
+--
+-- Junior doctors must have a supervisor
+-- Director cannot have a supervisor
+--
+
+CREATE TRIGGER ins_doc_supervisor BEFORE INSERT ON doctor FOR EACH ROW BEGIN
+    DECLARE rank_t VARCHAR(45);
+
+    IF NEW.rank = 'Διευθυντής' AND NEW.supervisor_id IS NOT NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Director cannot have a supervisor';
+    END IF;
+
+    IF NEW.rank = 'Ειδικευόμενος' AND NEW.supervisor_id IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Junior doctors must have a supervisor';
+    END IF;
+
+    IF NEW.supervisor_id IS NOT NULL THEN
+        SELECT rank INTO rank_t
+        FROM doctor
+        WHERE AMKA = NEW.supervisor_id;
+
+        IF rank_t = 'Ειδικευόμενος' THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Junior doctors may not be supervisors';
+        END IF;
+    END IF;
+END;;
+
 
 CREATE TRIGGER upd_doc_supervisor BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
+    DECLARE rank_t VARCHAR(45);
+
+    IF NEW.rank = 'Διευθυντής' AND NEW.supervisor_id IS NOT NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Director cannot have a supervisor';
+    END IF;
+
+    IF NEW.rank = 'Ειδικευόμενος' AND NEW.supervisor_id IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Junior doctors must have a supervisor';
+    END IF;
+
     IF NEW.supervisor_id IS NOT NULL THEN
+        SELECT rank INTO rank_t
+        FROM doctor
+        WHERE AMKA = NEW.supervisor_id;
 
-        SET @supervisee_id = NEW.AMKA;
-        SET @supervisor_id = NEW.supervisor_id;
-        SET @cycle_detection = 0;
-
-        WITH RECURSIVE supervision_cycle AS (
-            SELECT AMKA, supervisor_id
-            FROM doctor
-            WHERE AMKA = @supervisee_id
-            UNION ALL
-            SELECT doc.AMKA, doc.supervisor_id
-            FROM doctor doc
-            JOIN supervision_cycle hlpr ON doc.AMKA = hlpr.supervisor_id
-        )
-        SELECT COUNT(*) INTO @cycle_detection
-        FROM supervision_cycle
-        WHERE AMKA = @supervisor_id;
-
-        IF @cycle_detection > 0 THEN
+        IF rank_t = 'Ειδικευόμενος' THEN
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Cyclic doctor supervision is not permitted';
+            SET MESSAGE_TEXT = 'Junior doctors may not be supervisors';
         END IF;
     END IF;
 END;;
-
 -- =========================================================== 
 --                      Hospitalisation 
 -- =========================================================== 
@@ -1107,13 +1162,15 @@ CREATE TRIGGER ins_admin_monthly_shift_lim BEFORE INSERT ON admin_shift FOR EACH
         SET MESSAGE_TEXT = 'administrative staff may be assigned to a maximum of 25 shifts per month';
     END IF;
 END;;
-/*
+
+
 -- =========================================================== 
 --                        Prescriptions 
 -- =========================================================== 
 
 CREATE TRIGGER ins_prescribed_prod_patient_allergy BEFORE INSERT ON prescribed_products FOR EACH ROW BEGIN
     DECLARE patient_id_t VARCHAR(10);
+    DECLARE act_sub_id_t INT UNSIGNED;
 
     SELECT patient_id INTO patient_id_t
     FROM prescription
@@ -1124,7 +1181,9 @@ CREATE TRIGGER ins_prescribed_prod_patient_allergy BEFORE INSERT ON prescribed_p
         FROM product_act_sub pas
         INNER JOIN patient_allery pa ON pas.act_sub_id = pa.act_sub_id
         WHERE pa.AMKA = patient_id 
-          AND pas.act_sub_id = NEW.act_sub_id
+          AND pas.act_sub_id IN (SELECT act_sub_id 
+                                 FROM product_act_sub 
+                                 WHERE pharm_prod_id = NEW.pharm_prod_id)
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Patient allergic to prescribed active substance';
@@ -1145,7 +1204,10 @@ CREATE TRIGGER upd_prescribed_prod_patient_allergy BEFORE UPDATE ON prescribed_p
         FROM product_act_sub pas
         INNER JOIN patient_allery pa ON pas.act_sub_id = pa.act_sub_id
         WHERE pa.AMKA = patient_id 
-          AND pas.act_sub_id = NEW.act_sub_id
+          AND pas.act_sub_id IN (SELECT act_sub_id 
+                                 FROM product_act_sub 
+                                 WHERE pharm_prod_id = NEW.pharm_prod_id)
+
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Patient allergic to prescribed active substance';
@@ -1208,6 +1270,7 @@ END;;
 CREATE TRIGGER ins_surgery_temporality_assist_doc BEFORE INSERT ON surgical_act_doctor_assistants FOR EACH ROW BEGIN
     DECLARE start_t DATETIME;
     DECLARE end_t TIME;
+    DECLARE primary_doc_t VARCHAR(10);
 
     SELECT start_datetime, end_datetime INTO start_t, end_t
     FROM medical_act
@@ -1224,10 +1287,9 @@ CREATE TRIGGER ins_surgery_temporality_assist_doc BEFORE INSERT ON surgical_act_
         SET MESSAGE_TEXT = 'Assistant doctor already assigned at given time';
     END IF;
 
-    DECLARE primary_doc_t VARCHAR(10);
 
     -- Prevent insertion if doctor is already primary doctor of act
-    SELECT primary_doc_id INTO 
+    SELECT primary_doc_id INTO primary_doc_t
     FROM surgical_act
     WHERE med_act_id = NEW.med_act_id;
 
@@ -1257,6 +1319,8 @@ CREATE TRIGGER ins_surgery_temporality_assist_nurse BEFORE INSERT ON surgical_ac
     END IF;
 END;;
 
+/*
+*/
 
 -- =========================================================== 
 --                          Rating 
@@ -1276,7 +1340,6 @@ CREATE TRIGGER ins_rating BEFORE INSERT ON rating FOR EACH ROW BEGIN
     END IF;
 END;;
 
-*/
 DELIMITER ;
 
 SET SQL_MODE=@OLD_SQL_MODE;

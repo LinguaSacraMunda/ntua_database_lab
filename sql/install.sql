@@ -1342,6 +1342,27 @@ END;;
 
 DELIMITER ;
 
+-- ==============================================================================
+--                                    Views 
+-- ==============================================================================
+
+--
+-- Triage: patients treated based on emergency level + FIFO
+--
+CREATE VIEW triage_queue AS
+SELECT *
+FROM triage
+ORDER BY level DESC, arrival_time, ASC;
+
+--
+-- Print doctor specialisation along with values of doctor table
+--
+CREATE VIEW doctor_info AS
+SELECT d.AMKA, d.first_name, d.last_name, d.middle_name, d.date_of_birth, d.date_of_employment, d.license_number, d.supervisor_id, spec_code
+FROM doctor d
+INNER JOIN doc_spec ds ON d.AMKA = ds.AMKA
+INNER JOIN specialisation s ON ds.spc_code = s.spec_code
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

@@ -225,10 +225,28 @@
 
 Οι εικόνες αναπαρίστανται ως \eng{blobs}.
 
-Βάσει του ερωτήματος \texttt{A.6}\footnote{\eng{https://dev.mysql.com/doc/workbench/en/workbench-faq.html}}, στο \eng{install.sql}, TODO
+Βάσει του ερωτήματος \texttt{A.6}\footnote{\eng{https://dev.mysql.com/doc/workbench/en/workbench-faq.html}}, στο \eng{install.sql}, %TODO
 
 Οι γιατρικές ειδικότητες προκύπτουν από τη λίστα: https://www.gesy.org.cy/el-gr/annualreport/042026-specialty-restrictions-ahp-mp.xlsx
 
+Στο δοθέν αρχείο ΕΛΛΗΝΙΚΗ\_ΟΝΟΜΑΤΟΛΟΓΙΑ\_ΚΑΙ\_ΚΩΔΙΚΟΠΟΙΗΣΗ\_ΤΩΝ\_ΙΑΤΡΙΚΩΝ\_ΠΡΑΞΕΩΝ, κάποιες τιμές είναι μη μοδανικές, και παραλείπονται απο τη βάση.
+\langeng
+\begin{lstlisting}
++---------+------+---------------------------------------------------+
+| Level   | Code | Message                                           |
++---------+------+---------------------------------------------------+
+| Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
+| Warning | 1062 | Duplicate entry 'I212249' for key 'med_proc_code' |
+| Warning | 1062 | Duplicate entry 'I212251' for key 'med_proc_code' |
+| Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
+| Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
+| Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
+| Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
+| Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
+| Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
++---------+------+---------------------------------------------------+
+\end{lstlisting}
+\langgrc
 
 \section*{\ul{Πηγές}}
 \eng{https://www.gs1.org/industries/healthcare/standards}

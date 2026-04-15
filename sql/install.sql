@@ -449,7 +449,7 @@ CREATE TABLE discharge_diagnosis (
 
 CREATE TABLE medical_procedure (
     med_proc_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    med_proc_code VARCHAR(10) NOT NULL,
+    med_proc_code VARCHAR(16) NOT NULL,
     description TEXT NOT NULL,
     PRIMARY KEY (med_proc_id),
     INDEX idx_med_proc_code (med_proc_code),
@@ -566,12 +566,13 @@ CREATE TABLE rating (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Table structures for pharmaceutical products 
+-- Table structures for pharmaceutical products
 --
 
 CREATE TABLE active_substance (
     act_sub_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    act_sub VARCHAR(100) NOT NULL UNIQUE,
+    act_sub VARCHAR(100) NOT NULL,
+    act_sub_full TEXT NOT NULL,
     PRIMARY KEY (act_sub_id),
     INDEX idx_act_sub (act_sub)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

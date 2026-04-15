@@ -571,15 +571,16 @@ CREATE TABLE rating (
 
 CREATE TABLE active_substance (
     act_sub_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    act_sub VARCHAR(100) NOT NULL,
-    act_sub_full TEXT NOT NULL,
+    -- act_sub VARCHAR(100) NOT NULL,
+    act_sub_full TEXT NOT NULL UNIQUE,
     PRIMARY KEY (act_sub_id),
-    INDEX idx_act_sub (act_sub)
+    -- INDEX idx_act_sub (act_sub)
+    INDEX idx_act_sub (act_sub_full(100))
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE route_of_admission (
     route_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    type VARCHAR(255) NOT NULL,
+    type VARCHAR(255) NOT NULL UNIQUE,
     PRIMARY KEY (route_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -609,6 +610,7 @@ CREATE TABLE product_route (
     CONSTRAINT fk_prod_route_route_id FOREIGN KEY (route_id) REFERENCES route_of_admission (route_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_prod_route_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 --
 -- Table structures for patient allergies 
 --

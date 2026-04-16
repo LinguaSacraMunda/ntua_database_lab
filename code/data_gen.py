@@ -3,13 +3,16 @@ from datetime import datetime, timedelta
 from faker import Faker
 
 departments = ["Casualty", "Operating theatre (OT)", "Intensive care unit (ICU)", "Anesthesiology", "Cardiology", "ENT", "Geriatric", "Gastroenterology", "General surgery", "Gynaecology", "Haematology", "Pediatrics", "Neurology", "Oncology", "Opthalmology", "Orthopaedic", "Urology", "Psychiatry", "Inpatient Department (IPD)", "Outpatient Department (OPD)"]
-deps_without_director = departments
+
+spec_codes = ["AI", "CD", "CG", "END", "GE", "GER", "GS", "HEM", "IC", "ID", "IM", "ISAI", "ISCD", "ISCG", "ISEND", "ISGE", "ISGEN", "ISGER", "ISGS", "ISHEM", "ISIC", "ISID", "ISIM", "ISN", "ISNEP", "ISNIC", "ISOBG", "ISOMS", "ISON", "ISOR", "ISOTO", "ISP", "ISPCS", "ISPDGER", "ISPDGES", "ISPDPED", "ISPED", "ISPEDS", "ISPN", "ISPP", "ISPUL", "ISRHU", "ISRO", "ISTS", "ISU", "N", "NEP", "NIC", "OBG", "OMS", "ON", "OR", "OTO", "P", "PCS", "PDGEN", "PDGER", "PDGES", "PDPED", "PED", "PEDS", "PN", "PP", "PUL", "RHU", "RO", "TS", "U"]
 patient_ids = []
 nurse_ids = []
 admin_ids = []
 doctor_ids = []
 doctor_dir = []
 doctor_senior = []
+room_id_beds = []
+room_id_surg = []
 
 fake = Faker('el_GR')
 
@@ -28,15 +31,15 @@ def generate_amka(dob):
 def generate_triage(fdr):
     level = random.randint(1, 5)
     symptoms = fake.text(max_nb_chars=200)
-    fdr.write(f"INSERT INTO triage (level, symptoms) VALUES ({level}, '{symptoms}');\n")
+    fdr.write(f"INSERT INTO triage (level, symptoms) VALUES ('{level}', '{symptoms}');\n")
 
 def generate_contacts(fdr, table, amka):
     for i in range(random.randint(1,2)):
-        fdr.write(f"INSERT INTO {table}_email (AMKA, phone_number) VALUES ({amka}, '{fake.email()}');\n")
+        fdr.write(f"INSERT INTO {table}_email (AMKA, phone_number) VALUES ('{amka}', '{fake.email()}');\n")
 
 
     for i in range(random.randint(1,3)):
-        fdr.write(f"INSERT INTO {table}_phone (AMKA, phone_number) VALUES ({amka}, '{fake.phone_number()}');\n")
+        fdr.write(f"INSERT INTO {table}_phone (AMKA, phone_number) VALUES ('{amka}', '{fake.phone_number()}');\n")
 
 
 def generate_employment_date(dob):
@@ -78,7 +81,7 @@ def generate_patient(fdr, triage_id):
     profession = fake.job()
     citizenship = fake.country()
 
-    fdr.write(f"INSERT INTO patient (AMKA, first_name, middle_name, last_name, date_of_birth, sex, weight, height, street_name, street_number, postal_code, area, municipality, prefecture,  profession, citizenship, triage_id) VALUES ({amka},'{first_name}',{middle_name},'{last_name}',{dob.date()},{sex},{weight},{height},'{street_name}',{street_number},'{postal_code}','{area}','{municipality}','{prefecture}','{profession}','{citizenship}',{triage_id});\n")
+    fdr.write(f"INSERT INTO patient (AMKA, first_name, middle_name, last_name, date_of_birth, sex, weight, height, street_name, street_number, postal_code, area, municipality, prefecture,  profession, citizenship, triage_id) VALUES ('{amka}','{first_name}','{middle_name}','{last_name}','{dob.date()}','{sex}','{weight}','{height}','{street_name}','{street_number}','{postal_code}','{area}','{municipality}','{prefecture}','{profession}','{citizenship}','{triage_id}');\n")
     return amka
 
 # ========================================================================
@@ -101,7 +104,7 @@ def generate_nurse(fdr):
 
     dept_name = random.choice(departments)
 
-    fdr.write(f"INSERT INTO nurse (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, rank, dept_name) VALUES ({amka}, '{first_name}', '{middle_name}', '{last_name}', '{dob.date()}', '{doe.date()}', '{rank}', '{dept_name}');\n")
+    fdr.write(f"INSERT INTO nurse (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, rank, dept_name) VALUES ('{amka}', '{first_name}', '{middle_name}', '{last_name}', '{dob.date()}', '{doe.date()}', '{rank}', '{dept_name}');\n")
 
 # ========================================================================
 #                               Admin Gen 
@@ -125,10 +128,10 @@ def generate_admin(fdr):
 
     dept_name = random.choice(departments)
 
-    fdr.write(f"INSERT INTO administrative_staff (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, role, office, dept_name) VALUES ({amka}, '{first_name}', '{middle_name}', '{last_name}', '{dob.date()}', '{doe.date()}', '{role}', '{office}', '{dept_name}');\n")
+    fdr.write(f"INSERT INTO administrative_staff (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, role, office, dept_name) VALUES ('{amka}', '{first_name}', '{middle_name}', '{last_name}', '{dob.date()}', '{doe.date()}', '{role}', '{office}', '{dept_name}');\n")
 
 # ========================================================================
-#                             Doctor Gen 
+#                               Doctor Gen 
 # ========================================================================
 def generate_nurse(fdr):
     dob = random_date()
@@ -144,6 +147,12 @@ def generate_nurse(fdr):
     last_name = fake.last_name()
 
     rank = random.choice(['Ειδικευόμενος', 'Επιμελητής Β', 'Επιμελητής Α', 'Διευθυντής'])
+
+    # Make sure there are enough directors to assign
+    # to every department
+    if (len(departments) > len(doctor_dir)):
+        rank = 'Διευθυντής'
+
     if (rank != 'Ειδικευόμενος'):
         doctor_senior.append(amka)
     if (rank == 'Διευθυντής'):
@@ -151,11 +160,79 @@ def generate_nurse(fdr):
 
     license_num = f"{random.randint(0, 9999999999):010d}"
 
-    fdr.write(f"INSERT INTO doctor (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, license_number, rank) VALUES ({amka}, '{first_name}', '{middle_name}', '{last_name}', '{dob.date()}', '{doe.date()}', '{license_num}', '{rank}');\n")
+    fdr.write(f"INSERT INTO doctor (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, license_number, rank) VALUES ('{amka}', '{first_name}', '{middle_name}', '{last_name}', '{dob.date()}', '{doe.date()}', '{license_num}', '{rank}');\n")
 
 def generate_supervision(fdr, amka):
     super = random.choice(doctor_senior)
     fdr.write(f"UPDATE doctor SET supervisor_id = '{super}' WHERE AMKA = {amka}")
+
+def generate_specialisation(fdr, amka):
+    spec = random.choice(spec_codes)
+    fdr.write(f"INSERT INTO doc_spec (AMKA, spec_code) VALUES ('{amka}', '{spec}');\n")
+
+# ========================================================================
+#                           Department Gen 
+# ========================================================================
+
+def generate_departments(fdr):
+    for iter in departments:
+        dept_name = iter 
+        description = fake.text(max_nb_chars=200)
+        number_of_beds = random.randint(20, 200)
+        floor = random.randin(-2, 10)
+        building = f"Κτήριο {fake.last_name()}"
+        director_id = doctor_dir.pop()
+        
+        fdr.write(f"INSERT INTO department (dept_name, description, number_of_beds, floor, building, director_id) VALUES ('{dept_name}', '{description}', '{number_of_beds}', '{floor}', '{building}', '{director_id}');\n")
+
+
+def assign_to_department(fdr, table, amka):
+    fdr.write(f"INSERT INTO {table}_dept (AMKA, dept_name) VALUES ('{amka}', '{random.choice(departments)}');\n")
+
+# ========================================================================
+#                               Room Gen 
+# ========================================================================
+room_ids = []
+
+def generate_bed(fdr):
+    room_id = room_ids[len(room_ids)-1] + 1
+    roomd_ids.append(room_id)
+    type_t = random.choice(['Κλίνες', 'Χειρουργική Αίθουσα', 'ΤΕΠ', 'Διαγνωστική Αίθουσα', 'Αίθουσα Αναμονής', 'Γραφείο', 'Αποθήκη'])
+    status = random.choice(['Διαθέσιμο', 'Κατειλημμένο', 'Υπό Συντήρηση'])
+    dept_name = random.choice(departments)
+
+    if (type_t == 'Κλίνες'):
+        room_id_beds.append(room_id)
+    if (type_t == 'Χειρουργική Αίθουσα'):
+        room_id_surg.append(room_id)
+
+    fdr.write(f"INSERT INTO room (type, status, dept_name) VALUES ('{type_t}', '{status}', '{dept_name}');\n")
+
+
+# ========================================================================
+#                               Bed Gen 
+# ========================================================================
+
+def generate_bed(fdr):
+    type_t = random.choice(['ΜΕΘ', 'Μονόκλινο', 'Πολύκλινο', 'ΜΕΝΝ', 'Θάλαμος Νοσηλείας'])
+    status = random.choice(['Διαθέσιμη', 'Κατειλημμένη', 'Υπό Συντήρηση'])
+    dept_name = random.choice(departments)
+    room_id = random.choice(room_id_beds)
+
+    fdr.write(f"INSERT INTO bed (type, status, dept_name, room_id) VALUES ('{type_t}', '{status}', '{dept_name}', '{room_id}');\n")
+
+
+# ========================================================================
+#                               Bed Gen 
+# ========================================================================
+
+def generate_equipment(fdr):
+    uid = fake.uuid4()
+    description = fake.text(max_nb_chars=200)
+    room_id = random.choice(room_ids)
+    dept_name = random.choice(departments)
+
+    fdr.write(f"INSERT INTO equipment (UID, description, room_id, dept_name) VALUES ('{uid}', '{description}', '{room_id}', '{dept_name}');\n")
 
 def main():
     patient_num = 200;
@@ -166,22 +243,27 @@ def main():
     with open("insert.sql", "w") as fdr:
         fdr.write("SET FOREIGN_KEY_CHECKS = 0;\n")
 
-        for i in range(patient_num):
+        for _ in range(patient_num):
             triage_id = generate_triage(fdr)
             amka = generate_patient(fdr, triage_id)
             generate_contacts(fdr, "patient", amka)
 
-        for i in range(nurse_num):
+        for _ in range(nurse_num):
             amka = generate_nurse(fdr)
             generate_contacts(fdr, "nurse", amka)
+            assign_to_department(fdr, "nurse", amka)
 
-        for i in range(admin_num):
+        for _ in range(admin_num):
             amka = generate_admin(fdr)
             generate_contacts(fdr, "admin", amka)
+            assign_to_department(fdr, "admin", amka)
 
-        for i in range(doctor_num):
+        for _ in range(doctor_num):
             amka = generate_doctor(fdr)
             generate_contacts(fdr, "doctor", amka)
+            assign_to_department(fdr, "doctor", amka)
+            for i in range(random.randint(1,2)):
+                generate_specialisation(fdr, amka)
 
         for i in list(set(doctor_ids) - set(doctor_dir)):
             if (random.random() < 0.7):

@@ -232,6 +232,22 @@ CREATE TABLE doctor_dept (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
+-- Table structure for room
+--
+
+CREATE TABLE room (
+    room_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    type ENUM('Κλίνες', 'Χειρουργική Αίθουσα', 'ΤΕΠ', 'Διαγνωστική Αίθουσα', 'Αίθουσα Αναμονής', 'Γραφείο', 'Αποθήκη') NOT NULL,
+    status ENUM('Διαθέσιμο', 'Κατειλημμένο', 'Υπό Συντήρηση') NOT NULL,
+    dept_name VARCHAR(45) NOT NULL,
+    PRIMARY KEY (room_id),
+    INDEX idx_room_type (type),
+    INDEX idx_room_status (status),
+    INDEX idx_fk_dept_name (dept_name),
+    CONSTRAINT fk_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
 -- Table structure for beds
 --
 
@@ -250,32 +266,23 @@ CREATE TABLE bed (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Table structure for room
---
-
-CREATE TABLE room (
-    room_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    type ENUM('Κλίνες', 'Χειρουργική Αίθουσα', 'ΤΕΠ', 'Διαγνωστική Αίθουσα', 'Αίθουσα Αναμονής', 'Γραφείο', 'Αποθήκη') NOT NULL,
-    status ENUM('Διαθέσιμο', 'Κατειλημμένο', 'Υπό Συντήρηση') NOT NULL,
-    dept_name VARCHAR(45) NOT NULL,
-    PRIMARY KEY (room_id),
-    INDEX idx_room_type (type),
-    INDEX idx_room_status (status),
-    INDEX idx_fk_dept_name (dept_name),
-    CONSTRAINT fk_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
 -- Table structure for equipment
 --
 
 CREATE TABLE equipment (
     UID VARCHAR(128) NOT NULL,
     description TEXT NOT NULL,
-    PRIMARY KEY (UID)
+    room_id INT UNSIGNED NOT NULL,
+    dept_name VARCHAR(45) NOT NULL,
+    PRIMARY KEY (UID),
+    UNIQUE (UID, room_id, dept_name),
+    INDEX idx_fk_room_id (room_id),
+    INDEX idx_fk_dept_name (dept_name)
+    CONSTRAINT fk_equip_dept_name FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_equip_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
+/*
 CREATE TABLE equipment_room (
     UID VARCHAR(128) NOT NULL,
     room_id INT UNSIGNED NOT NULL,
@@ -291,7 +298,7 @@ CREATE TABLE equipment_dept (
     CONSTRAINT fk_equip_room_UID FOREIGN KEY (UID) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_equip_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
+*/
 --
 -- Table structure for shift 
 --

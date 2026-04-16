@@ -6,7 +6,7 @@ SQL script για τη φόρτωση της βάσης με δεδομένα
 -- Doctor specialisation
 --
 
-LOAD DATA LOCAL INFILE '/home/admin/shared_ntua/6th_semester/databases/project/data/042026_Specialty_Restrictions_AHP_MP.csv'
+LOAD DATA LOCAL INFILE 'data/042026_Specialty_Restrictions_AHP_MP.csv'
 INTO TABLE specialisation
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -18,7 +18,7 @@ IGNORE 1 ROWS
 -- KEN codes
 --
 
-LOAD DATA LOCAL INFILE '/home/admin/shared_ntua/6th_semester/databases/project/data/4.1 Λίστα Κλειστών Ενοποιημένων Νοσηλίων.csv'
+LOAD DATA LOCAL INFILE 'data/4.1 Λίστα Κλειστών Ενοποιημένων Νοσηλίων.csv'
 INTO TABLE costing 
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -31,7 +31,7 @@ SET base_cost = REPLACE(@hlpr, ' ', '');
 -- ICD-10 codes
 --
 
-LOAD DATA LOCAL INFILE '/home/admin/shared_ntua/6th_semester/databases/project/data/4.2 Κωδικοί ICD-10 15-12-2011.csv'
+LOAD DATA LOCAL INFILE 'data/4.2 Κωδικοί ICD-10 15-12-2011.csv'
 INTO TABLE diagnosis 
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -43,7 +43,7 @@ IGNORE 1 ROWS
 -- Medical procedures
 --
 
-LOAD DATA LOCAL INFILE '/home/admin/shared_ntua/6th_semester/databases/project/data/ΕΛΛΗΝΙΚΗ_ΟΝΟΜΑΤΟΛΟΓΙΑ_ΚΑΙ_ΚΩΔΙΚΟΠΟΙΗΣΗ_ΤΩΝ_ΙΑΤΡΙΚΩΝ_ΠΡΑΞΕΩΝ.csv'
+LOAD DATA LOCAL INFILE 'data/ΕΛΛΗΝΙΚΗ_ΟΝΟΜΑΤΟΛΟΓΙΑ_ΚΑΙ_ΚΩΔΙΚΟΠΟΙΗΣΗ_ΤΩΝ_ΙΑΤΡΙΚΩΝ_ΠΡΑΞΕΩΝ.csv'
 INTO TABLE medical_procedure 
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -92,7 +92,7 @@ CREATE TABLE staging_ema (
 -- 2. LOAD CSV FILE
 -- =========================================
 
-LOAD DATA LOCAL INFILE '/home/admin/shared_ntua/6th_semester/databases/project/data/article-57-product-data_en_clean.csv'
+LOAD DATA LOCAL INFILE 'data/article-57-product-data_en_clean.csv'
 INTO TABLE staging_ema
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -173,7 +173,7 @@ WHERE TRIM(jt.value) <> '';
 -- =========================================
 
 CREATE INDEX idx_prod_name ON pharmaceutical_product(name);
-CREATE INDEX idx_sub_name ON active_substance(act_sub_full(255));
+CREATE INDEX idx_sub_name ON active_substance(act_sub_full(100));
 CREATE INDEX idx_route_name ON route_of_admission(type);
 
 ALTER TABLE staging_ema 
@@ -197,8 +197,8 @@ BEGIN
 
     SELECT MAX(id) INTO max_id FROM staging_ema;
 
-    DROP dataORARY TABLE IF EXISTS tmp_product_substances;
-    CREATE dataORARY TABLE tmp_product_substances (
+    DROP TEMPORARY TABLE IF EXISTS tmp_product_substances;
+    CREATE TEMPORARY TABLE tmp_product_substances (
         product_name VARCHAR(255),
         substance VARCHAR(255),
         INDEX idx_prod (product_name),
@@ -223,11 +223,11 @@ BEGIN
         LIMIT batch_size;
 
         -- Deduplicate
-        CREATE dataORARY TABLE tmp_distinct AS
+        CREATE TEMPORARY TABLE tmp_distinct AS
         SELECT DISTINCT product_name, substance
         FROM tmp_product_substances;
 
-        DROP dataORARY TABLE tmp_product_substances;
+        DROP TEMPORARY TABLE tmp_product_substances;
         RENAME TABLE tmp_distinct TO tmp_product_substances;
 
         ALTER TABLE tmp_product_substances
@@ -266,8 +266,8 @@ BEGIN
 
     SELECT MAX(id) INTO max_id FROM staging_ema;
 
-    DROP dataORARY TABLE IF EXISTS tmp_product_routes;
-    CREATE dataORARY TABLE tmp_product_routes (
+    DROP TEMPORARY TABLE IF EXISTS tmp_product_routes;
+    CREATE TEMPORARY TABLE tmp_product_routes (
         product_name VARCHAR(255),
         route VARCHAR(255),
         INDEX idx_prod (product_name),
@@ -292,11 +292,11 @@ BEGIN
         LIMIT batch_size;
 
         -- Deduplicate
-        CREATE dataORARY TABLE tmp_distinct AS
+        CREATE TEMPORARY TABLE tmp_distinct AS
         SELECT DISTINCT product_name, route
         FROM tmp_product_routes;
 
-        DROP dataORARY TABLE tmp_product_routes;
+        DROP TEMPORARY TABLE tmp_product_routes;
         RENAME TABLE tmp_distinct TO tmp_product_routes;
 
         ALTER TABLE tmp_product_routes
@@ -341,8 +341,8 @@ CALL load_product_route_fast(1000);
 -- =========================================
 -- 9. CLEANUP + RESTORE SETTINGS
 -- =========================================
-SET FOREIGN_KEY_CHECKS = 1;
-
--- Optional: drop staging table
 DROP TABLE staging_ema;
+DROP TABLE tmp_product_routes;
+DROP TABLE tmp_product_substances;
+SET FOREIGN_KEY_CHECKS = 1;
 

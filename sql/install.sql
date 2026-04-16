@@ -94,7 +94,7 @@ CREATE TABLE nurse (
     date_of_birth DATE NOT NULL,
     date_of_employment DATE NOT NULL CHECK (date_of_employment > date_of_birth),
     rank ENUM('Βοηθός Νοσηλευτή', 'Νοσηλευτής', 'Προϊστάμενος') NOT NULL,
-    dept_name INT UNSIGNED NOT NULL,
+    dept_name VARCHAR(45) NOT NULL,
     PRIMARY KEY (AMKA),
     INDEX idx_nurse_last_name (last_name),
     CONSTRAINT fk_nurse_dept FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -128,7 +128,7 @@ CREATE TABLE administrative_staff (
     date_of_employment DATE NOT NULL CHECK (date_of_employment > date_of_birth),
     role ENUM('Γραμματεία', 'Λογιστήριο', 'Ανθρώπινο Δυναμικό', 'Τεχνική Υποστήριξη') NOT NULL,
     office VARCHAR(10) NOT NULL,
-    dept_name INT UNSIGNED NOT NULL,
+    dept_name VARCHAR(45) NOT NULL,
     PRIMARY KEY (AMKA),
     INDEX idx_admin_last_name (last_name),
     CONSTRAINT fk_admin_dept FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE

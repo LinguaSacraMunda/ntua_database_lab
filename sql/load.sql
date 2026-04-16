@@ -2,10 +2,13 @@
 SQL script για τη φόρτωση της βάσης με δεδομένα
 */
 
+SET FOREIGN_KEY_CHECKS = 0;
+
 --
 -- Doctor specialisation
 --
 
+DELETE FROM specialisation;
 LOAD DATA LOCAL INFILE 'data/042026_Specialty_Restrictions_AHP_MP.csv'
 INTO TABLE specialisation
 FIELDS TERMINATED BY ','
@@ -18,6 +21,7 @@ IGNORE 1 ROWS
 -- KEN codes
 --
 
+DELETE FROM costing;
 LOAD DATA LOCAL INFILE 'data/4.1 Λίστα Κλειστών Ενοποιημένων Νοσηλίων.csv'
 INTO TABLE costing 
 FIELDS TERMINATED BY ','
@@ -31,6 +35,7 @@ SET base_cost = REPLACE(@hlpr, ' ', '');
 -- ICD-10 codes
 --
 
+DELETE FROM diagnosis;
 LOAD DATA LOCAL INFILE 'data/4.2 Κωδικοί ICD-10 15-12-2011.csv'
 INTO TABLE diagnosis 
 FIELDS TERMINATED BY ','
@@ -43,6 +48,7 @@ IGNORE 1 ROWS
 -- Medical procedures
 --
 
+DELETE FROM medical_procedure;
 LOAD DATA LOCAL INFILE 'data/ΕΛΛΗΝΙΚΗ_ΟΝΟΜΑΤΟΛΟΓΙΑ_ΚΑΙ_ΚΩΔΙΚΟΠΟΙΗΣΗ_ΤΩΝ_ΙΑΤΡΙΚΩΝ_ΠΡΑΞΕΩΝ.csv'
 INTO TABLE medical_procedure 
 FIELDS TERMINATED BY ','
@@ -55,22 +61,14 @@ IGNORE 2 ROWS
 --
 --  Pharmaceutical products
 --
-/*
-LOAD DATA LOCAL INFILE '/home/admin/shared_ntua/6th_semester/databases/project/data/act_subs_rem_dupl.csv'
-INTO TABLE active_substance 
-FIELDS TERMINATED BY ';'
-ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-(@hlpr)
-SET act_sub_full = @hlpr;
-*/
 
--- =========================================
--- 0. SAFETY SETTINGS
--- =========================================
-SET FOREIGN_KEY_CHECKS = 0;
 SET sql_mode = '';
 
+DELETE FROM pharmaceutical_product;
+DELETE FROM active_substance;
+DELETE FROM route_of_admission;
+DELETE FROM product_act_sub;
+DELETE FROM product_route;
 -- =========================================
 -- 1. STAGING TABLE (DROP + CREATE)
 -- =========================================
@@ -344,5 +342,7 @@ CALL load_product_route_fast(1000);
 DROP TABLE staging_ema;
 DROP TABLE tmp_product_routes;
 DROP TABLE tmp_product_substances;
+
+
 SET FOREIGN_KEY_CHECKS = 1;
 

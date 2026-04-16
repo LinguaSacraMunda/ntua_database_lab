@@ -277,7 +277,7 @@ CREATE TABLE equipment (
     PRIMARY KEY (UID),
     UNIQUE (UID, room_id, dept_name),
     INDEX idx_fk_room_id (room_id),
-    INDEX idx_fk_dept_name (dept_name)
+    INDEX idx_fk_dept_name (dept_name),
     CONSTRAINT fk_equip_dept_name FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_equip_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -375,7 +375,6 @@ CREATE TABLE costing (
 --
 -- Table structure for relation costing ---< covered_by >--> insurance_carrier
 --
-
 
 CREATE TABLE costing_coverage (
     costing_id INT UNSIGNED NOT NULL,
@@ -1422,7 +1421,7 @@ DELIMITER ;
 --
 -- Triage: patients treated based on emergency level + FIFO
 --
-CREATE VIEW triage_queue AS
+CREATE VIEW vw_triage_queue AS
 SELECT *
 FROM triage
 ORDER BY level DESC, arrival_time ASC;
@@ -1430,7 +1429,7 @@ ORDER BY level DESC, arrival_time ASC;
 --
 -- Print doctor specialisation along with values of doctor table
 --
-CREATE VIEW doctor_info AS
+CREATE VIEW vw_doctor_info AS
 SELECT d.AMKA, d.first_name, d.last_name, d.middle_name, d.date_of_birth, d.date_of_employment, d.license_number, d.supervisor_id, s.description_grc
 FROM doctor d
 INNER JOIN doc_spec ds ON d.AMKA = ds.AMKA

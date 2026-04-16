@@ -19,7 +19,7 @@ fake = Faker('el_GR')
 # ========================================================================
 #                              General data
 # ========================================================================
-def random_date(_start=1940, _end=2025):
+def random_date(_start=1940, _end=2000):
     start = datetime(_start, 1, 1);
     end = datetime(_end, 12, 31);
     return start + timedelta(days=random.randint(0, (end - start).days))
@@ -55,13 +55,13 @@ def generate_employment_date(dob):
 #                               Patient Gen 
 # ========================================================================
 def generate_patient(fdr, triage_id):
-    dob = random_date();
+    dob = random_date(1940, 2025);
     amka = generate_amka(dob);
     patient_ids.append(amka)
 
     first_name = fake.first_name()
     if (random.random() < 0.2):
-        middle_name = fake.first_name
+        middle_name = fake.first_name()
     else:
         middle_name = None 
     last_name = fake.last_name()
@@ -81,7 +81,8 @@ def generate_patient(fdr, triage_id):
     profession = fake.job()
     citizenship = fake.country()
 
-    fdr.write(f"INSERT INTO patient (AMKA, first_name, middle_name, last_name, date_of_birth, sex, weight, height, street_name, street_number, postal_code, area, municipality, prefecture,  profession, citizenship, triage_id) VALUES ('{amka}','{first_name}','{middle_name}','{last_name}','{dob.date()}','{sex}','{weight}','{height}','{street_name}','{street_number}','{postal_code}','{area}','{municipality}','{prefecture}','{profession}','{citizenship}','{triage_id}');\n")
+    fdr.write(f"INSERT INTO patient (AMKA, first_name, middle_name, last_name, date_of_birth, sex, weight, height, street_name, street_number, postal_code, area, municipality, prefecture,  profession, citizenship, triage_id) VALUES ('{amka}','{first_name}',{'NULL' if middle_name is None else '\'' + str(middle_name) + '\''},'{last_name}','{dob.date()}','{sex}','{weight}','{height}','{street_name}','{street_number}','{postal_code}','{area}','{municipality}','{prefecture}','{profession}','{citizenship}','{triage_id}');\n")
+
     return amka
 
 # ========================================================================
@@ -95,7 +96,7 @@ def generate_nurse(fdr):
 
     first_name = fake.first_name()
     if (random.random() < 0.2):
-        middle_name = fake.first_name
+        middle_name = fake.first_name()
     else:
         middle_name = None 
     last_name = fake.last_name()
@@ -104,7 +105,9 @@ def generate_nurse(fdr):
 
     dept_name = random.choice(departments)
 
-    fdr.write(f"INSERT INTO nurse (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, rank, dept_name) VALUES ('{amka}', '{first_name}', '{middle_name}', '{last_name}', '{dob.date()}', '{doe.date()}', '{rank}', '{dept_name}');\n")
+    fdr.write(f"INSERT INTO nurse (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, rank, dept_name) VALUES ('{amka}', '{first_name}', {'NULL' if middle_name is None else '\''+str(middle_name)+'\''}, '{last_name}', '{dob.date()}', '{doe.date()}', '{rank}', '{dept_name}');\n")
+
+    return amka
 
 # ========================================================================
 #                               Admin Gen 
@@ -117,7 +120,7 @@ def generate_admin(fdr):
 
     first_name = fake.first_name()
     if (random.random() < 0.2):
-        middle_name = fake.first_name
+        middle_name = fake.first_name()
     else:
         middle_name = None 
     last_name = fake.last_name()
@@ -128,12 +131,14 @@ def generate_admin(fdr):
 
     dept_name = random.choice(departments)
 
-    fdr.write(f"INSERT INTO administrative_staff (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, role, office, dept_name) VALUES ('{amka}', '{first_name}', '{middle_name}', '{last_name}', '{dob.date()}', '{doe.date()}', '{role}', '{office}', '{dept_name}');\n")
+    fdr.write(f"INSERT INTO administrative_staff (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, role, office, dept_name) VALUES ('{amka}', '{first_name}', {'NULL' if middle_name is None else '\''+str(middle_name)+'\''}, '{last_name}', '{dob.date()}', '{doe.date()}', '{role}', '{office}', '{dept_name}');\n")
+
+    return amka
 
 # ========================================================================
 #                               Doctor Gen 
 # ========================================================================
-def generate_nurse(fdr):
+def generate_doctor(fdr):
     dob = random_date()
     doe = generate_employment_date(dob)
     amka = generate_amka(dob)
@@ -141,7 +146,7 @@ def generate_nurse(fdr):
 
     first_name = fake.first_name()
     if (random.random() < 0.2):
-        middle_name = fake.first_name
+        middle_name = fake.first_name()
     else:
         middle_name = None 
     last_name = fake.last_name()
@@ -160,11 +165,13 @@ def generate_nurse(fdr):
 
     license_num = f"{random.randint(0, 9999999999):010d}"
 
-    fdr.write(f"INSERT INTO doctor (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, license_number, rank) VALUES ('{amka}', '{first_name}', '{middle_name}', '{last_name}', '{dob.date()}', '{doe.date()}', '{license_num}', '{rank}');\n")
+    fdr.write(f"INSERT INTO doctor (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, license_number, rank) VALUES ('{amka}', '{first_name}', {'NULL' if middle_name is None else '\''+str(middle_name)+'\''}, '{last_name}', '{dob.date()}', '{doe.date()}', '{license_num}', '{rank}');\n")
+
+    return amka
 
 def generate_supervision(fdr, amka):
     super = random.choice(doctor_senior)
-    fdr.write(f"UPDATE doctor SET supervisor_id = '{super}' WHERE AMKA = {amka}")
+    fdr.write(f"UPDATE doctor SET supervisor_id = '{super}' WHERE AMKA = {amka};\n")
 
 def generate_specialisation(fdr, amka):
     spec = random.choice(spec_codes)

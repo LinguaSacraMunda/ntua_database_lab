@@ -372,18 +372,19 @@ CREATE TABLE costing (
     UNIQUE (description)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+/*
 --
 -- Table structure for relation costing ---< covered_by >--> insurance_carrier
 --
-
-CREATE TABLE costing_coverage (
-    costing_id INT UNSIGNED NOT NULL,
+CREATE TABLE hospit_coverage (
+    hosp_id INT UNSIGNED NOT NULL,
     carrier_id INT UNSIGNED NOT NULL,
-    PRIMARY KEY (costing_id),
+    PRIMARY KEY (hosp_id),
     INDEX idx_fk_carrier_id (carrier_id),
-    CONSTRAINT fk_const_coverage_costing_id FOREIGN KEY (costing_id) REFERENCES costing (costing_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_const_coverage_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_const_coverage_carrier_id FOREIGN KEY (carrier_id) REFERENCES insurance_carrier (carrier_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+*/
 
 --
 --  Table structure for dianosis
@@ -407,11 +408,13 @@ CREATE TABLE hospitalisation (
     dept_name VARCHAR(45) NOT NULL,
     bed_id INT UNSIGNED NOT NULL,
     costing_id INT UNSIGNED NOT NULL,
+    carrier_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (hosp_id),
     INDEX idx_admission_date (admission_date),
     INDEX idx_fk_dept_name (dept_name),
     CONSTRAINT fk_hosp_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_bed_id FOREIGN KEY (bed_id) REFERENCES bed (bed_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_hosp_carrier_id FOREIGN KEY (carrier_id) REFERENCES insurance_carrier (carrier_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_costing_id FOREIGN KEY (costing_id) REFERENCES costing (costing_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

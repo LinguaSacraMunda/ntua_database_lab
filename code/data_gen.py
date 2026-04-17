@@ -16,6 +16,8 @@ doctor_senior = []
 room_id_beds = []
 room_id_surg = []
 bed_num = 0;
+cost_num = 702;
+insurance_carrier_num = 10;
 
 icd10_path = "/home/admin/shared_ntua/6th_semester/databases/project/data/icd10.csv"
 ken_path = "/home/admin/shared_ntua/6th_semester/databases/project/data/KEN.csv"
@@ -60,7 +62,7 @@ def generate_employment_date(dob):
 
 def get_icd10():
     with open(icd10_path, newline='\n', encoding='utf-8') as f:
-        reder = csv.reader(f);
+        reader = csv.reader(f);
         hlpr = None;
         for i, row in enumerate(reader, 1):     # this is stupid
             if random.randrange(i) == 0:
@@ -69,9 +71,10 @@ def get_icd10():
         return hlpr;
 
 
-def get_KEN_code():
+def get_KEN():
     with open(ken_path, newline='\n', encoding='utf-8') as f:
-        reder = csv.DictReader(f);
+        reader = csv.reader(f);
+        next(reader, None)
         hlpr = None;
         for i, row in enumerate(reader, 1):
             if random.randrange(i) == 0:
@@ -304,7 +307,7 @@ def generate_allergy(fdr, lim, amka):
 
 
 # ========================================================================
-#                                Media 
+#                               Media Gen 
 # ========================================================================
 media_num = 0;
 def generate_media_aux(fdr):
@@ -318,11 +321,6 @@ def generate_media(fdr, table, id):
     generate_media_aux(fdr)
 
     fdr.write(f"INSERT INTO {table}_media (media_id, {table}_id) VALUES ('{media_num}', '{table}_id')")
-
-# ========================================================================
-#                                Costing 
-# ========================================================================
-
 
 # ========================================================================
 #                             Hospitalisation 
@@ -339,7 +337,7 @@ def generate_hospitalisation(fdr):
         discharge_date = None
     dept_name = random.choice(departments)
     bed_id = random.randint(1, bed_num + 1)
-    costing_id = random.randint(1, cost_num + 1) #TODO
+    costing_id = random.randint(1, cost_num + 1)
 
     fdr.write(f"INSERT INTO hospitalisation (admission_date, discharge_date, dept_name, bed_id, costing_id) VALUES ('{admission_date.date()}', {'NULL' if discharge_date is None else '\'' + str(discharge_date.date()) + '\''}, '{dept_name}', '{bed_id}', '{costing_id}');\n")
 
@@ -356,6 +354,11 @@ def generate_discharge_diag(fdr, _hosp_id):
     daig_id = get_icd10()
     fdr.write(f"INSERT INTO discharge_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
 
+def assign_coverage(fdr, _hosp_id):
+    carrier_id = random.randint(1, insurance_carrier_num + 1)
+    fdr.write(f"INSERT INTO hospit_coverage (hosp_id, carrier_id) VALUES ('{_hosp_id}', '{carrier_id}');\n")
+
+
 # ========================================================================
 #                                 Main 
 # ========================================================================
@@ -366,7 +369,6 @@ def main():
     nurse_num = 100;
     admin_num = 50;
     room_num = 150;
-    insurance_carrier_num = 10;
     act_sub_num = 12000;
     equip_num = 250;
     hosp_num = patient_num + 100;

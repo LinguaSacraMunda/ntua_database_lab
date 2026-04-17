@@ -41,7 +41,7 @@ fake = Faker('el_GR')
 # ========================================================================
 #                              General data
 # ========================================================================
-def random_date(_start=1940, _end=2000):
+def random_date(_start=1940, _end=2026):
     start = datetime(_start, 1, 1);
     end = datetime(_end, 12, 31);
     return start + timedelta(days=random.randint(0, (end - start).days))
@@ -143,7 +143,7 @@ def generate_patient(fdr, triage_id):
 #                               Nurse Gen 
 # ========================================================================
 def generate_nurse(fdr):
-    dob = random_date()
+    dob = random_date(1940, 2000)
     doe = generate_employment_date(dob)
     amka = generate_amka(dob)
     nurse_ids.append(amka)
@@ -167,7 +167,7 @@ def generate_nurse(fdr):
 #                               Admin Gen 
 # ========================================================================
 def generate_admin(fdr):
-    dob = random_date()
+    dob = random_date(1940, 2000)
     doe = generate_employment_date(dob)
     amka = generate_amka(dob)
     admin_ids.append(amka)
@@ -193,7 +193,7 @@ def generate_admin(fdr):
 #                               Doctor Gen 
 # ========================================================================
 def generate_doctor(fdr):
-    dob = random_date()
+    dob = random_date(1940, 2000)
     doe = generate_employment_date(dob)
     amka = generate_amka(dob)
     doctor_ids.append(amka)
@@ -338,18 +338,20 @@ def generate_media_aux(fdr):
     description = fake.text(max_nb_chars=200)
 
     fdr.write(f"INSERT INTO media (path, description) VALUES ('{path}', '{description}');\n")
+    global media_num;
     media_num += 1;
 
 def generate_media(fdr, table, id):
     generate_media_aux(fdr)
 
-    fdr.write(f"INSERT INTO {table}_media (media_id, {table}_id) VALUES ('{media_num}', '{table}_id')")
+    fdr.write(f"INSERT INTO {table}_media (media_id, {table}_id) VALUES ('{media_num}', '{table}_id');\n")
 
 # ========================================================================
 #                             Lab Test Gen 
 # ========================================================================
 lab_test_id = 0;
 def generate_lab_test(fdr):
+    global lab_test_id;
     lab_test_id += 1;
     med_proc_id = random.randint(1, med_proc_num)
     doc_id = random.choice(doctor_ids)
@@ -375,27 +377,28 @@ def is_surgical_act(fdr, _med_act_id):
     # Assistants
     for _ in range(random.randint(1,2)):
         hlpr = random.choice(doctor_ids)
-        fdr.write(f"INSERT INTO surgical_act_doctor_assistants (med_act_id, assistant_id) VALUES ('{_med_act_id}', '{hlpr)}';\n")
+        fdr.write(f"INSERT INTO surgical_act_doctor_assistants (med_act_id, assistant_id) VALUES ('{_med_act_id}', '{hlpr}');\n")
 
     for _ in range(random.randint(1,3)):
         hlpr = random.choice(nurse_ids)
-        fdr.write(f"INSERT INTO surgical_act_nurse_assistants (med_act_id, assistant_id) VALUES ('{_med_act_id}', '{hlpr)}';\n")
+        fdr.write(f"INSERT INTO surgical_act_nurse_assistants (med_act_id, assistant_id) VALUES ('{_med_act_id}', '{hlpr}');\n")
 
 
 
 def generate_med_act(fdr):
+    global med_act_id;
     med_act_id += 1;
     type_t = random.choice(['Χειρουργική', 'Διαγνωστική', 'Θεραπευτική'])
     med_proc_id = random.randint(1, med_proc_num)
     start_datetime = random_date()
-    end_datetime = random_date(_start=start_datetime.year)
+    end_datetime = start_datetime + timedelta(days=random.randint(0, 100))
     result = fake.text(max_nb_chars=200)
     cost = round(random.uniform(10, 9999), 2)
 
-    if (type_t = 'Χειρουργική'):
+    if (type_t == 'Χειρουργική'):
         room_id = random.choice(room_id_surg)
         is_surgical_act(fdr, med_act_id)
-    else
+    else:
         room_id = random.choice(room_ids)
 
     fdr.write(f"INSERT INTO medical_act (type, med_proc_id, start_datetime, end_datetime, room_id, cost) VALUES ('{type_t}', '{med_proc_id}', '{start_datetime}', '{end_datetime}', '{room_id}', '{cost}');\n")
@@ -430,19 +433,20 @@ def assign_to_patient_record(fdr, _hosp_id):
     return amka;
 
 def generate_admission_diag(fdr, _hosp_id):
-    daig_id = get_icd10()
+    diag_id = get_icd10()
     fdr.write(f"INSERT INTO admission_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
 
 def generate_discharge_diag(fdr, _hosp_id):
-    daig_id = get_icd10()
+    diag_id = get_icd10()
     fdr.write(f"INSERT INTO discharge_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
 
 def generate_hospitalisation(fdr):
+    global hosp_id;
     hosp_id += 1;
     admission_date = random_date(1990, 2025)
     generate_admission_diag(fdr, hosp_id)
     if (random.random() < 0.5):
-        discharge_date = random_date(admission_date.year + 1, 2025)
+        discharge_date = admission_date + timedelta(days=random.randint(1, 365))
         generate_discharge_diag(fdr, hosp_id)
     else:
         discharge_date = None
@@ -475,13 +479,14 @@ prescr_id = 0;
 def prescribe_prods(fdr, _prescr_id):
     pharm_prod_id = random.randint(1, pharm_prod_num)
     start_date = random_date()
-    end_date = random_date(_start=start_date().year)
+    end_date = start_date + timedelta(days=random.randint(1, 60))
     dosage = fake.text(max_nb_chars=200)
     frequency = fake.text(max_nb_chars=80)
 
     fdr.write(f"INSERT INTO prescribed_products (prescription_id, pharm_prod_id, start_date, end_date, dosage, frequency) VALUES ('{_prescr_id}', '{pharm_prod_id}', '{start_date}', '{end_date}', '{dosage}', '{frequency}');\n")
 
 def generate_prescription(fdr):
+    global prescr_id;
     prescr_id += 1;
     doctor_id = random.choice(doctor_ids)
     patient_id = random.choice(patient_ids)
@@ -493,32 +498,43 @@ def generate_prescription(fdr):
 # ========================================================================
 #                               Shift Gen 
 # ========================================================================
-
 shift_id = 0;
+
+def assign_shift_staff(fdr, table, amka, _shift_id):
+    fdr.write(f"INSERT IGNORE INTO {table}_shift (AMKA, shift_id) VALUES ('{amka}', '{_shift_id}');\n")
+
 def generate_shift(fdr):
+    global shift_id;
     shift_id += 1;
-    day = random_date();
+    day = random_date(_start=2024, _end=2026);
     type_t = random.choice(['07:00-15:00', '15:00-23:00', '23:00-07:00'])
 
     fdr.write(f"INSERT INTO shift (day, type) VALUES ('{day}', '{type_t}');\n")
+
+    d = random.sample(doctor_ids, random.randint(3, min(8, len(doctor_ids))))
+    n = random.sample(nurse_ids, random.randint(6, min(10, len(nurse_ids))))
+    a = random.sample(admin_ids, random.randint(2, min(4, len(admin_ids))))
+
+    for i in d:
+        assign_shift_staff(fdr, "doctor", i, shift_id)
+    for i in n:
+        assign_shift_staff(fdr, "nurse", i, shift_id)
+    for i in a:
+        assign_shift_staff(fdr, "admin", i, shift_id)
+
+    fdr.write(f"UPDATE IGNORE shift SET status = TRUE WHERE shift_id = '{shift_id}';\n")
+
     return shift_id;
-    
-def generate_shift_staff(fdr, table, _shift_id):
-    amka = 0;
-    if (table == "doctor"):
-        amka = random.choice(doctor_ids)
-    elif (table == "nurse"):
-        amka = random.choice(nurse_ids)
-    elif (table == "admin"):
-        amka = random.choice(admin_ids)
 
-    fdr.write(f"INSERT IGNORE INTO {table}_shift (AMKA, shift_id) VALUES ('{amka}', '{_shift_id}');\n")
-
-def generate_dep_shifts(fdr, dept_name):
+def generate_dept_shifts_aux(fdr, dept_name):
     _shift_id = generate_shift(fdr)
     fdr.write(f"INSERT IGNORE INTO dept_shift (dept_name, shift_id) VALUES ('{dept_name}', '{_shift_id}');\n")
 
 
+def generate_dept_shifts(fdr):
+    for i in departments:
+        for _ in range(random.randint(10, 30)):
+            generate_dept_shifts_aux(fdr, i)
     
 
 # ========================================================================
@@ -568,6 +584,7 @@ def main():
         for _ in range(room_num):
             generate_room(fdr)
 
+        global bed_num;
         bed_num = len(room_id_beds)
         for _ in range(bed_num):
             generate_bed(fdr)
@@ -607,6 +624,8 @@ def main():
 
         for _ in range(prescr_num):
             generate_prescription(fdr)
+
+        generate_dept_shifts(fdr)
 
         fdr.write("SET FOREIGN_KEY_CHECKS = 1;\n")
         fdr.close()

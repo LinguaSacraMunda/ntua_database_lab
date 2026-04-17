@@ -502,7 +502,7 @@ CREATE TABLE hosp_lab_test (
 
 CREATE TABLE medical_act (
     med_act_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    type VARCHAR(45) NOT NULL,
+    type ENUM('Χειρουργική', 'Διαγνωστική', 'Θεραπευτική') NOT NULL,
     med_proc_id INT UNSIGNED NOT NULL,
     start_datetime DATETIME NOT NULL,
     end_datetime DATETIME NOT NULL,
@@ -570,6 +570,7 @@ CREATE TABLE rating (
     food TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= food  AND food <= 5),
     experience TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= experience  AND experience <= 5),
     PRIMARY KEY (AMKA, hosp_id),
+    INDEX idx_fk_patient_id (AMKA),
     CONSTRAINT fk_rating_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_rating_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -649,7 +650,7 @@ CREATE TABLE prescription (
 
 
 CREATE TABLE prescribed_products (
-    prescription_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    prescription_id INT UNSIGNED NOT NULL,
     pharm_prod_id INT UNSIGNED NOT NULL,
     start_date DATE NOT NULL DEFAULT CURRENT_DATE,
     end_date DATE NOT NULL CHECK (end_date >= start_date),

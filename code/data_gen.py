@@ -18,10 +18,22 @@ room_id_surg = []
 bed_num = 0;
 cost_num = 702;
 insurance_carrier_num = 10;
+patient_num = 200;
+doctor_num = 80;
+nurse_num = 100;
+admin_num = 50;
+room_num = 150;
+act_sub_num = 12000;
+equip_num = 250;
+hosp_num = patient_num + 100;
+med_proc_num = 11019
+pharm_prod_num = 162000
 
-icd10_path = "/home/admin/shared_ntua/6th_semester/databases/project/data/icd10.csv"
-ken_path = "/home/admin/shared_ntua/6th_semester/databases/project/data/KEN.csv"
+TEMP = "/home/admin/shared_ntua/6th_semester/databases/project/"
 
+icd10_path = TEMP + "data/icd10.csv"
+ken_path = TEMP + "data/KEN.csv"
+pharm_prod_path = TEMP + "data/article-57-product-data_en_clean.csv"
 
 fake = Faker('el_GR')
 
@@ -82,6 +94,16 @@ def get_KEN():
 
         return hlpr;
 
+def get_pharm_prod():
+    with open(pharm_prod_path, newline='\n', encoding='utf-8') as f:
+        reader = csv.reader(f);
+        next(reader, None)
+        hlpr = None;
+        for i, row in enumerate(reader, 1):
+            if random.randrange(i) == 0:
+                hlpr = row[0];
+
+        return hlpr;
 # ========================================================================
 #                               Patient Gen 
 # ========================================================================
@@ -323,9 +345,97 @@ def generate_media(fdr, table, id):
     fdr.write(f"INSERT INTO {table}_media (media_id, {table}_id) VALUES ('{media_num}', '{table}_id')")
 
 # ========================================================================
+#                             Lab Test Gen 
+# ========================================================================
+lab_test_id = 0;
+def generate_lab_test(fdr):
+    lab_test_id += 1;
+    med_proc_id = random.randint(1, med_proc_num)
+    doc_id = random.choice(doctor_ids)
+    date = random_date()
+    result = fake.text(max_nb_chars=200)
+    cost = round(random.uniform(10, 9999), 2)
+
+    fdr.write(f"INSERT INTO lab_test (med_proc_id, doc_id, date, result, cost) VALUES ('{med_proc_id}', '{doc_id}', '{date}', '{result}', '{cost}');\n")
+    return lab_test_id
+
+def assign_hosp_to_lab_test(fdr, _hosp_id, _lab_test_id):
+    fdr.write(f"INSERT INTO hosp_lab_test (lab_test_id, hosp_id) VALUES ('{_lab_test_id}', '{_hosp_id}');\n")
+
+# ========================================================================
+#                           Medical Act Gen 
+# ========================================================================
+med_act_id = 0;
+
+def is_surgical_act(fdr, _med_act_id):
+    primary_doc = random.choice(doctor_senior)
+    fdr.write(f"INSERT INTO surgical_act (med_act_id, primary_doc_id) VALUES ('{_med_act_id}', '{primary_doc}');\n")
+
+    # Assistants
+    for _ in range(random.randint(1,2)):
+        hlpr = random.choice(doctor_ids)
+        fdr.write(f"INSERT INTO surgical_act_doctor_assistants (med_act_id, assistant_id) VALUES ('{_med_act_id}', '{hlpr)}';\n")
+
+    for _ in range(random.randint(1,3)):
+        hlpr = random.choice(nurse_ids)
+        fdr.write(f"INSERT INTO surgical_act_nurse_assistants (med_act_id, assistant_id) VALUES ('{_med_act_id}', '{hlpr)}';\n")
+
+
+
+def generate_med_act(fdr):
+    med_act_id += 1;
+    type_t = random.choice(['Χειρουργική', 'Διαγνωστική', 'Θεραπευτική'])
+    med_proc_id = random.randint(1, med_proc_num)
+    start_datetime = random_date()
+    end_datetime = random_date(_start=start_datetime.year)
+    result = fake.text(max_nb_chars=200)
+    cost = round(random.uniform(10, 9999), 2)
+
+    if (type_t = 'Χειρουργική'):
+        room_id = random.choice(room_id_surg)
+        is_surgical_act(fdr, med_act_id)
+    else
+        room_id = random.choice(room_ids)
+
+    fdr.write(f"INSERT INTO medical_act (type, med_proc_id, start_datetime, end_datetime, room_id, cost) VALUES ('{type_t}', '{med_proc_id}', '{start_datetime}', '{end_datetime}', '{room_id}', '{cost}');\n")
+    return med_act_id
+
+
+def assign_hosp_to_med_act(fdr, _hosp_id, _med_act_id):
+    fdr.write(f"INSERT INTO hosp_med_act (med_act_id, hosp_id) VALUES ('{_med_act_id}', '{_hosp_id}');\n")
+
+# ========================================================================
+#                             Rating Gen 
+# ========================================================================
+
+def generate_rating(fdr,_hosp_id, amka):
+    medical_care = random.randint(1,5)
+    nursing_care = random.randint(1,5)
+    cleanliness = random.randint(1,5)
+    food = random.randint(1,5)
+    experience = random.randint(1,5)
+
+    fdr.write(f"INSERT INTO rating (AMKA, hosp_id, medical_care, nursing_care, cleanliness, food, experience) VALUES ('{amka}', '{_hosp_id}', '{medical_care}', '{nursing_care}', '{cleanliness}', '{food}', '{experience}');\n")
+
+
+# ========================================================================
 #                             Hospitalisation 
 # ========================================================================
 hosp_id = 0;
+
+def assign_to_patient_record(fdr, _hosp_id):
+    amka = random.choice(patient_ids)
+    fdr.write(f"INSERT INTO patient_record (AMKA, hosp_id) VALUES ('{amka}', '{_hosp_id}');\n")
+    return amka;
+
+def generate_admission_diag(fdr, _hosp_id):
+    daig_id = get_icd10()
+    fdr.write(f"INSERT INTO admission_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
+
+def generate_discharge_diag(fdr, _hosp_id):
+    daig_id = get_icd10()
+    fdr.write(f"INSERT INTO discharge_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
+
 def generate_hospitalisation(fdr):
     hosp_id += 1;
     admission_date = random_date(1990, 2025)
@@ -336,43 +446,54 @@ def generate_hospitalisation(fdr):
     else:
         discharge_date = None
     dept_name = random.choice(departments)
-    bed_id = random.randint(1, bed_num + 1)
-    costing_id = random.randint(1, cost_num + 1)
+    bed_id = random.randint(1, bed_num)
+    costing_id = random.randint(1, cost_num)
+    carrier_id = random.randint(1, insurance_carrier_num)
 
-    fdr.write(f"INSERT INTO hospitalisation (admission_date, discharge_date, dept_name, bed_id, costing_id) VALUES ('{admission_date.date()}', {'NULL' if discharge_date is None else '\'' + str(discharge_date.date()) + '\''}, '{dept_name}', '{bed_id}', '{costing_id}');\n")
+    fdr.write(f"INSERT INTO hospitalisation (admission_date, discharge_date, dept_name, bed_id, costing_id, carrier_id) VALUES ('{admission_date.date()}', {'NULL' if discharge_date is None else '\'' + str(discharge_date.date()) + '\''}, '{dept_name}', '{bed_id}', '{costing_id}', '{carrier_id}');\n")
 
-def assign_hospitalisation(fdr, _hosp_id):
-    amka = random.choice(patient_ids)
-    fdr.write(f"INSERT INTO patient_record (AMKA, hosp_id) VALUES ('{amka}', '{_hosp_id}');\n")
+    # Lab test
+    if (random.random() < 0.6):
+        test_id = generate_lab_test(fdr)
+        assign_hosp_to_lab_test(fdr, hosp_id, test_id)
 
-def generate_admission_diag(fdr, _hosp_id):
-    daig_id = get_icd10()
-    fdr.write(f"INSERT INTO admission_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
+    # Medical act
+    if (random.random() < 0.6):
+        act_id = generate_med_act(fdr)
+        assign_hosp_to_med_act(fdr, hosp_id, act_id)
 
+    amka = assign_to_patient_record(fdr, hosp_id)
+    if (discharge_date != None):
+        generate_rating(fdr, hosp_id, amka)
 
-def generate_discharge_diag(fdr, _hosp_id):
-    daig_id = get_icd10()
-    fdr.write(f"INSERT INTO discharge_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
+# ========================================================================
+#                              Prescription 
+# ========================================================================
+prescr_id = 0;
 
-def assign_coverage(fdr, _hosp_id):
-    carrier_id = random.randint(1, insurance_carrier_num + 1)
-    fdr.write(f"INSERT INTO hospit_coverage (hosp_id, carrier_id) VALUES ('{_hosp_id}', '{carrier_id}');\n")
+def prescribe_prods(fdr, _prescr_id):
+    pharm_prod_id = random.randint(1, pharm_prod_num)
+    start_date = random_date()
+    end_date = random_date(_start=start_date().year)
+    dosage = fake.text(max_nb_chars=200)
+    frequency = fake.text(max_nb_chars=80)
 
+    fdr.write(f"INSERT INTO prescribed_products (prescription_id, pharm_prod_id, start_date, end_date, dosage, frequency) VALUES ('{_prescr_id}', '{pharm_prod_id}', '{start_date}', '{end_date}', '{dosage}', '{frequency}');\n")
+
+def generate_prescription(fdr):
+    prescr_id += 1;
+    doctor_id = random.choice(doctor_ids)
+    patient_id = random.choice(patient_ids)
+
+    fdr.write(f"INSERT INTO prescription (doctor_id, patient_id) VALUES ('{doctor_id}', '{patient_id}');\n")
+
+    prescribe_prods(fdr, prescr_id)
 
 # ========================================================================
 #                                 Main 
 # ========================================================================
 
 def main():
-    patient_num = 200;
-    doctor_num = 80;
-    nurse_num = 100;
-    admin_num = 50;
-    room_num = 150;
-    act_sub_num = 12000;
-    equip_num = 250;
-    hosp_num = patient_num + 100;
-
     with open("insert.sql", "w") as fdr:
         fdr.write("SET FOREIGN_KEY_CHECKS = 0;\n")
 

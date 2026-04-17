@@ -28,6 +28,7 @@ equip_num = 250;
 hosp_num = patient_num + 100;
 med_proc_num = 11019
 pharm_prod_num = 162000
+prescr_num = round(1.4 * patient_num)
 
 TEMP = "/home/admin/shared_ntua/6th_semester/databases/project/"
 
@@ -467,7 +468,7 @@ def generate_hospitalisation(fdr):
         generate_rating(fdr, hosp_id, amka)
 
 # ========================================================================
-#                              Prescription 
+#                           Prescription Gen 
 # ========================================================================
 prescr_id = 0;
 
@@ -488,6 +489,9 @@ def generate_prescription(fdr):
     fdr.write(f"INSERT INTO prescription (doctor_id, patient_id) VALUES ('{doctor_id}', '{patient_id}');\n")
 
     prescribe_prods(fdr, prescr_id)
+# ========================================================================
+#                               Shift Gen 
+# ========================================================================
 
 # ========================================================================
 #                                 Main 
@@ -573,9 +577,8 @@ def main():
         for _ in range(hosp_num):
             generate_hospitalisation(fdr)
 
-        for i in range(1, hosp_num + 1):
-            assign_hospitalisation(fdr, i)
-
+        for _ in range(prescr_num):
+            generate_prescription(fdr)
 
         fdr.write("SET FOREIGN_KEY_CHECKS = 1;\n")
         fdr.close()

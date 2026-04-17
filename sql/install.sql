@@ -307,7 +307,6 @@ CREATE TABLE shift (
     shift_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     day DATE NOT NULL,
     type  ENUM('07:00-15:00', '15:00-23:00', '23:00-07:00') NOT NULL,
-    -- bool status;
     status BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (shift_id),
     INDEX idx_shift_type (type),
@@ -339,6 +338,12 @@ CREATE TABLE admin_shift (
     CONSTRAINT fk_admin_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE dept_shift (
+    dept_name VARCHAR(45) NOT NULL,
+    shift_id INT UNSIGNED NOT NULL,
+    CONSTRAINT fk_dept_shift_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_dept_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 --
 --  Table structure for insurance carrier 
 --

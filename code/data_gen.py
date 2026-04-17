@@ -1,6 +1,7 @@
 import random
 from datetime import datetime, timedelta
 from faker import Faker
+import csv
 
 departments = ["Casualty", "Operating theatre (OT)", "Intensive care unit (ICU)", "Anesthesiology", "Cardiology", "ENT", "Geriatric", "Gastroenterology", "General surgery", "Gynaecology", "Haematology", "Pediatrics", "Neurology", "Oncology", "Opthalmology", "Orthopaedic", "Urology", "Psychiatry", "Inpatient Department (IPD)", "Outpatient Department (OPD)"]
 
@@ -14,6 +15,11 @@ doctor_dir = []
 doctor_senior = []
 room_id_beds = []
 room_id_surg = []
+bed_num = 0;
+
+icd10_path = "/home/admin/shared_ntua/6th_semester/databases/project/data/icd10.csv"
+ken_path = "/home/admin/shared_ntua/6th_semester/databases/project/data/KEN.csv"
+
 
 fake = Faker('el_GR')
 
@@ -51,6 +57,27 @@ def generate_employment_date(dob):
         end = datetime.now();
 
     return start + timedelta(days=random.randint(0, (end-start).days))
+
+def get_icd10():
+    with open(icd10_path, newline='\n', encoding='utf-8') as f:
+        reder = csv.reader(f);
+        hlpr = None;
+        for i, row in enumerate(reader, 1):     # this is stupid
+            if random.randrange(i) == 0:
+                hlpr = row[0];
+
+        return hlpr;
+
+
+def get_KEN_code():
+    with open(ken_path, newline='\n', encoding='utf-8') as f:
+        reder = csv.DictReader(f);
+        hlpr = None;
+        for i, row in enumerate(reader, 1):
+            if random.randrange(i) == 0:
+                hlpr = row[0];
+
+        return hlpr;
 
 # ========================================================================
 #                               Patient Gen 
@@ -291,6 +318,44 @@ def generate_media(fdr, table, id):
     generate_media_aux(fdr)
 
     fdr.write(f"INSERT INTO {table}_media (media_id, {table}_id) VALUES ('{media_num}', '{table}_id')")
+
+# ========================================================================
+#                                Costing 
+# ========================================================================
+
+
+# ========================================================================
+#                             Hospitalisation 
+# ========================================================================
+hosp_id = 0;
+def generate_hospitalisation(fdr):
+    hosp_id += 1;
+    admission_date = random_date(1990, 2025)
+    generate_admission_diag(fdr, hosp_id)
+    if (random.random() < 0.5):
+        discharge_date = random_date(admission_date.year + 1, 2025)
+        generate_discharge_diag(fdr, hosp_id)
+    else:
+        discharge_date = None
+    dept_name = random.choice(departments)
+    bed_id = random.randint(1, bed_num + 1)
+    costing_id = random.randint(1, cost_num + 1) #TODO
+
+    fdr.write(f"INSERT INTO hospitalisation (admission_date, discharge_date, dept_name, bed_id, costing_id) VALUES ('{admission_date.date()}', {'NULL' if discharge_date is None else '\'' + str(discharge_date.date()) + '\''}, '{dept_name}', '{bed_id}', '{costing_id}');\n")
+
+def assign_hospitalisation(fdr, _hosp_id):
+    amka = random.choice(patient_ids)
+    fdr.write(f"INSERT INTO patient_record (AMKA, hosp_id) VALUES ('{amka}', '{_hosp_id}');\n")
+
+def generate_admission_diag(fdr, _hosp_id):
+    daig_id = get_icd10()
+    fdr.write(f"INSERT INTO admission_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
+
+
+def generate_discharge_diag(fdr, _hosp_id):
+    daig_id = get_icd10()
+    fdr.write(f"INSERT INTO discharge_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
+
 # ========================================================================
 #                                 Main 
 # ========================================================================
@@ -304,6 +369,7 @@ def main():
     insurance_carrier_num = 10;
     act_sub_num = 12000;
     equip_num = 250;
+    hosp_num = patient_num + 100;
 
     with open("insert.sql", "w") as fdr:
         fdr.write("SET FOREIGN_KEY_CHECKS = 0;\n")
@@ -380,6 +446,12 @@ def main():
 
         for i in range(1, room_num + 1):
             generate_media(fdr, "room", i)
+
+        for _ in range(hosp_num):
+            generate_hospitalisation(fdr)
+
+        for i in range(1, hosp_num + 1):
+            assign_hospitalisation(fdr, i)
 
 
         fdr.write("SET FOREIGN_KEY_CHECKS = 1;\n")

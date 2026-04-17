@@ -489,9 +489,37 @@ def generate_prescription(fdr):
     fdr.write(f"INSERT INTO prescription (doctor_id, patient_id) VALUES ('{doctor_id}', '{patient_id}');\n")
 
     prescribe_prods(fdr, prescr_id)
+
 # ========================================================================
 #                               Shift Gen 
 # ========================================================================
+
+shift_id = 0;
+def generate_shift(fdr):
+    shift_id += 1;
+    day = random_date();
+    type_t = random.choice(['07:00-15:00', '15:00-23:00', '23:00-07:00'])
+
+    fdr.write(f"INSERT INTO shift (day, type) VALUES ('{day}', '{type_t}');\n")
+    return shift_id;
+    
+def generate_shift_staff(fdr, table, _shift_id):
+    amka = 0;
+    if (table == "doctor"):
+        amka = random.choice(doctor_ids)
+    elif (table == "nurse"):
+        amka = random.choice(nurse_ids)
+    elif (table == "admin"):
+        amka = random.choice(admin_ids)
+
+    fdr.write(f"INSERT IGNORE INTO {table}_shift (AMKA, shift_id) VALUES ('{amka}', '{_shift_id}');\n")
+
+def generate_dep_shifts(fdr, dept_name):
+    _shift_id = generate_shift(fdr)
+    fdr.write(f"INSERT IGNORE INTO dept_shift (dept_name, shift_id) VALUES ('{dept_name}', '{_shift_id}');\n")
+
+
+    
 
 # ========================================================================
 #                                 Main 

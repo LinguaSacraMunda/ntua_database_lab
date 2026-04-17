@@ -341,9 +341,11 @@ CREATE TABLE admin_shift (
 CREATE TABLE dept_shift (
     dept_name VARCHAR(45) NOT NULL,
     shift_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (dept_name, shift_id),
     CONSTRAINT fk_dept_shift_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_dept_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_dept_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 --
 --  Table structure for insurance carrier 
 --
@@ -570,7 +572,7 @@ CREATE TABLE rating (
     AMKA VARCHAR(45) NOT NULL,
     hosp_id INT UNSIGNED NOT NULL,
     medical_care TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= medical_care  AND medical_care <= 5),
-    nursing_case TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= nursing_case  AND nursing_case <= 5),
+    nursing_care TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= nursing_care  AND nursing_care <= 5),
     cleanliness TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= cleanliness  AND cleanliness <= 5),
     food TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= food  AND food <= 5),
     experience TINYINT(1) UNSIGNED DEFAULT NULL CHECK (1 <= experience  AND experience <= 5),
@@ -1327,7 +1329,7 @@ CREATE TRIGGER ins_surgery_temporality_assist_doc BEFORE INSERT ON surgical_act_
     IF EXISTS (
         SELECT *
         FROM surgical_act_doctor_assistants sa
-        INNER JOIN medical_act ma1 ON ma1.med_act_id = sa.med_act_id
+        INNER JOIN medical_act ma ON ma.med_act_id = sa.med_act_id
         WHERE sa.assistant_id = NEW.assistant_id
         AND (ma.end_datetime > start_t AND ma.start_datetime < end_t)
     ) THEN 
@@ -1358,7 +1360,7 @@ CREATE TRIGGER ins_surgery_temporality_assist_nurse BEFORE INSERT ON surgical_ac
     IF EXISTS (
         SELECT *
         FROM surgical_act_nurse_assistants sa
-        INNER JOIN medical_act ma1 ON ma1.med_act_id = sa.med_act_id
+        INNER JOIN medical_act ma ON ma.med_act_id = sa.med_act_id
         WHERE sa.assistant_id = NEW.assistant_id
         AND (ma.end_datetime > start_t AND ma.start_datetime < end_t)
     ) THEN 

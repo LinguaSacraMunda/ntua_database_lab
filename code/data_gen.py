@@ -7,6 +7,9 @@ departments = ["Casualty", "Operating theatre (OT)", "Intensive care unit (ICU)"
 
 spec_codes = ["AI", "CD", "CG", "END", "GE", "GER", "GS", "HEM", "IC", "ID", "IM", "ISAI", "ISCD", "ISCG", "ISEND", "ISGE", "ISGEN", "ISGER", "ISGS", "ISHEM", "ISIC", "ISID", "ISIM", "ISN", "ISNEP", "ISNIC", "ISOBG", "ISOMS", "ISON", "ISOR", "ISOTO", "ISP", "ISPCS", "ISPDGER", "ISPDGES", "ISPDPED", "ISPED", "ISPEDS", "ISPN", "ISPP", "ISPUL", "ISRHU", "ISRO", "ISTS", "ISU", "N", "NEP", "NIC", "OBG", "OMS", "ON", "OR", "OTO", "P", "PCS", "PDGEN", "PDGER", "PDGES", "PDPED", "PED", "PEDS", "PN", "PP", "PUL", "RHU", "RO", "TS", "U"]
 
+tables = ["admin_email", "admin_media", "admin_phone", "admin_shift", "administrative_staff", "admission_diagnosis", "bed", "bed_media", "department", "dept_shift", "discharge_diagnosis", "doc_spec", "doctor", "doctor_dept", "doctor_email", "doctor_media", "doctor_phone", "doctor_shift", "emergency_contact", "equipment", "equipment_media", "hosp_lab_test", "hosp_med_act", "hospitalisation", "insurance_carrier", "lab_test", "media", "medical_act", "nurse", "nurse_email", "nurse_media", "nurse_phone", "nurse_shift", "patient", "patient_allergy", "patient_email", "patient_insurance", "patient_phone", "patient_record", "prescribed_products", "prescription", "rating", "room", "room_media", "shift", "surgical_act", "surgical_act_doctor_assistants", "surgical_act_nurse_assistants", "triage"]
+
+
 patient_ids = []
 nurse_ids = []
 admin_ids = []
@@ -29,6 +32,8 @@ hosp_num = patient_num + 100;
 med_proc_num = 11019
 pharm_prod_num = 162000
 prescr_num = round(1.4 * patient_num)
+
+DISABLE_FK_CHECK = True
 
 TEMP = "/home/admin/shared_ntua/6th_semester/databases/project/"
 
@@ -57,7 +62,7 @@ def generate_triage(fdr):
 
 def generate_contacts(fdr, table, amka):
     for i in range(random.randint(1,2)):
-        fdr.write(f"INSERT INTO {table}_email (AMKA, phone_number) VALUES ('{amka}', '{fake.email()}');\n")
+        fdr.write(f"INSERT INTO {table}_email (AMKA, email_address) VALUES ('{amka}', '{fake.email()}');\n")
 
 
     for i in range(random.randint(1,3)):
@@ -353,7 +358,7 @@ lab_test_id = 0;
 def generate_lab_test(fdr):
     global lab_test_id;
     lab_test_id += 1;
-    med_proc_id = random.randint(1, med_proc_num)
+    med_proc_id = random.randint(6609, med_proc_num)
     doc_id = random.choice(doctor_ids)
     date = random_date()
     result = fake.text(max_nb_chars=200)
@@ -389,7 +394,7 @@ def generate_med_act(fdr):
     global med_act_id;
     med_act_id += 1;
     type_t = random.choice(['Χειρουργική', 'Διαγνωστική', 'Θεραπευτική'])
-    med_proc_id = random.randint(1, med_proc_num)
+    med_proc_id = random.randint(1, 6608)
     start_datetime = random_date()
     end_datetime = start_datetime + timedelta(days=random.randint(0, 100))
     result = fake.text(max_nb_chars=200)
@@ -540,10 +545,18 @@ def generate_dept_shifts(fdr):
 # ========================================================================
 #                                 Main 
 # ========================================================================
+def clear_tables(fdr):
+    for i in tables:
+        fdr.write(f"DELETE FROM {i};\n")
+    
+
 
 def main():
     with open("insert.sql", "w") as fdr:
-        fdr.write("SET FOREIGN_KEY_CHECKS = 0;\n")
+        if (DISABLE_FK_CHECK):
+            fdr.write("SET FOREIGN_KEY_CHECKS = 0;\n")
+
+        clear_tables(fdr)
 
         for _ in range(patient_num):
             triage_id = generate_triage(fdr)
@@ -553,12 +566,10 @@ def main():
         for _ in range(nurse_num):
             amka = generate_nurse(fdr)
             generate_contacts(fdr, "nurse", amka)
-            assign_to_department(fdr, "nurse", amka)
 
         for _ in range(admin_num):
             amka = generate_admin(fdr)
             generate_contacts(fdr, "admin", amka)
-            assign_to_department(fdr, "admin", amka)
 
         for _ in range(doctor_num):
             amka = generate_doctor(fdr)
@@ -567,18 +578,18 @@ def main():
             for i in range(random.randint(1,2)):
                 generate_specialisation(fdr, amka)
 
-        for i in list(set(doctor_ids) - set(doctor_dir)):
+        doctor_jr_ids = list(set(doctor_ids) - set(doctor_senior))
+        for i in doctor_jr_ids:
+            generate_supervision(fdr, i)
+
+        for i in list(set(doctor_ids) - set(doctor_dir) - set(doctor_jr_ids)):
             if (random.random() < 0.7):
                 generate_supervision(fdr, i)
 
         generate_departments(fdr)
 
-        for i in nurse_ids:
-            assign_to_department(fdr, "nurse", i)
-        for i in admin_ids:
-            assign_to_department(fdr, "admin", i)
-        for i in list(set(doctor_ids) - set(doctor_dir)):
-            assign_to_department(fdr, "doctor", i)
+        #for i in list(set(doctor_ids) - set(doctor_dir)):
+        #    assign_to_department(fdr, "doctor", i)
 
 
         for _ in range(room_num):
@@ -627,7 +638,8 @@ def main():
 
         generate_dept_shifts(fdr)
 
-        fdr.write("SET FOREIGN_KEY_CHECKS = 1;\n")
+        if (DISABLE_FK_CHECK):
+            fdr.write("SET FOREIGN_KEY_CHECKS = 1;\n")
         fdr.close()
 
 if __name__ == "__main__":

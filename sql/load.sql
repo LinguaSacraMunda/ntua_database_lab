@@ -9,7 +9,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 --
 
 DELETE FROM specialisation;
-LOAD DATA LOCAL INFILE 'data/042026_Specialty_Restrictions_AHP_MP.csv'
+LOAD DATA LOCAL INFILE '../data/042026_Specialty_Restrictions_AHP_MP.csv'
 INTO TABLE specialisation
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -22,7 +22,7 @@ IGNORE 1 ROWS
 --
 
 DELETE FROM costing;
-LOAD DATA LOCAL INFILE 'data/4.1 Λίστα Κλειστών Ενοποιημένων Νοσηλίων.csv'
+LOAD DATA LOCAL INFILE '../data/4.1 Λίστα Κλειστών Ενοποιημένων Νοσηλίων.csv'
 INTO TABLE costing 
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -36,7 +36,7 @@ SET base_cost = REPLACE(@hlpr, ' ', '');
 --
 
 DELETE FROM diagnosis;
-LOAD DATA LOCAL INFILE 'data/4.2 Κωδικοί ICD-10 15-12-2011.csv'
+LOAD DATA LOCAL INFILE '../data/4.2 Κωδικοί ICD-10 15-12-2011.csv'
 INTO TABLE diagnosis 
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -49,7 +49,7 @@ IGNORE 1 ROWS
 --
 
 DELETE FROM medical_procedure;
-LOAD DATA LOCAL INFILE 'data/ΕΛΛΗΝΙΚΗ_ΟΝΟΜΑΤΟΛΟΓΙΑ_ΚΑΙ_ΚΩΔΙΚΟΠΟΙΗΣΗ_ΤΩΝ_ΙΑΤΡΙΚΩΝ_ΠΡΑΞΕΩΝ.csv'
+LOAD DATA LOCAL INFILE '../data/ΕΛΛΗΝΙΚΗ_ΟΝΟΜΑΤΟΛΟΓΙΑ_ΚΑΙ_ΚΩΔΙΚΟΠΟΙΗΣΗ_ΤΩΝ_ΙΑΤΡΙΚΩΝ_ΠΡΑΞΕΩΝ.csv'
 INTO TABLE medical_procedure 
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -90,7 +90,7 @@ CREATE TABLE staging_ema (
 -- 2. LOAD CSV FILE
 -- =========================================
 
-LOAD DATA LOCAL INFILE 'data/article-57-product-data_en_clean.csv'
+LOAD DATA LOCAL INFILE '../data/article-57-product-data_en_clean.csv'
 INTO TABLE staging_ema
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -188,6 +188,7 @@ CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 DELIMITER $$
 
+DROP PROCEDURE IF EXISTS load_product_act_sub_fast;
 CREATE PROCEDURE load_product_act_sub_fast(IN batch_size INT)
 BEGIN
     DECLARE last_id INT DEFAULT 0;
@@ -257,6 +258,7 @@ DELIMITER ;
 
 DELIMITER $$
 
+DROP PROCEDURE IF EXISTS load_product_route_fast;
 CREATE PROCEDURE load_product_route_fast(IN batch_size INT)
 BEGIN
     DECLARE last_id INT DEFAULT 0;
@@ -343,6 +345,8 @@ DROP TABLE staging_ema;
 DROP TABLE tmp_product_routes;
 DROP TABLE tmp_product_substances;
 
+DROP PROCEDURE IF EXISTS load_product_act_sub_fast;
+DROP PROCEDURE IF EXISTS load_product_route_fast;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

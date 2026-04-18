@@ -16,6 +16,7 @@ admin_ids = []
 doctor_ids = []
 doctor_dir = []
 doctor_senior = []
+room_ids = []
 room_id_beds = []
 room_id_surg = []
 bed_num = 0;
@@ -43,6 +44,16 @@ pharm_prod_path = TEMP + "data/article-57-product-data_en_clean.csv"
 
 fake = Faker('el_GR')
 
+# Auto_increment ids as global vars
+triage_id = 0;
+bed_id = 0;
+shift_id = 0;
+hosp_id = 0;
+lab_test_id = 0;
+prescr_id = 0;
+media_num = 0;
+
+
 # ========================================================================
 #                              General data
 # ========================================================================
@@ -56,9 +67,13 @@ def generate_amka(dob):
     return base + f"{random.randint(0, 9999):04d}"
 
 def generate_triage(fdr):
+    global triage_id;
+    triage_id += 0;
     level = random.randint(1, 5)
     symptoms = fake.text(max_nb_chars=200)
-    fdr.write(f"INSERT INTO triage (level, symptoms) VALUES ('{level}', '{symptoms}');\n")
+    fdr.write(f"INSERT INTO triage (triage_id, level, symptoms) VALUES ('{triage_id}', '{level}', '{symptoms}');\n")
+
+    return triage_id
 
 def generate_contacts(fdr, table, amka):
     for i in range(random.randint(1,2)):
@@ -263,7 +278,6 @@ def generate_departments(fdr):
 # ========================================================================
 #                               Room Gen 
 # ========================================================================
-room_ids = []
 
 def generate_room(fdr):
     if (len(room_ids) == 0):
@@ -281,7 +295,7 @@ def generate_room(fdr):
     if (type_t == 'Χειρουργική Αίθουσα'):
         room_id_surg.append(room_id)
 
-    fdr.write(f"INSERT INTO room (type, status, dept_name) VALUES ('{type_t}', '{status}', '{dept_name}');\n")
+    fdr.write(f"INSERT INTO room (room_id, type, status, dept_name) VALUES ('{room_id}', '{type_t}', '{status}', '{dept_name}');\n")
 
 
 # ========================================================================
@@ -289,12 +303,14 @@ def generate_room(fdr):
 # ========================================================================
 
 def generate_bed(fdr):
+    global bed_id;
+    bed_id += 1;
     type_t = random.choice(['ΜΕΘ', 'Μονόκλινο', 'Πολύκλινο', 'ΜΕΝΝ', 'Θάλαμος Νοσηλείας'])
     status = random.choice(['Διαθέσιμη', 'Κατειλημμένη', 'Υπό Συντήρηση'])
     dept_name = random.choice(departments)
     room_id = room_id_beds.pop()
 
-    fdr.write(f"INSERT INTO bed (type, status, dept_name, room_id) VALUES ('{type_t}', '{status}', '{dept_name}', '{room_id}');\n")
+    fdr.write(f"INSERT INTO bed (bed_id, type, status, dept_name, room_id) VALUES ('{bed_id}', '{type_t}', '{status}', '{dept_name}', '{room_id}');\n")
 
 
 # ========================================================================
@@ -315,9 +331,9 @@ def generate_equipment(fdr):
 #                            Insurance Gen 
 # ========================================================================
 
-def generate_insurance(fdr):
+def generate_insurance(fdr, id):
     name = fake.company()
-    fdr.write(f"INSERT INTO insurance_carrier (name) VALUES ('{name}');\n")
+    fdr.write(f"INSERT INTO insurance_carrier (carrier_id, name) VALUES ('{id}', '{name}');\n")
 
 def assign_to_carrier(fdr, lim, amka):
     carrier_id = random.randint(1, lim);
@@ -340,14 +356,14 @@ def generate_allergy(fdr, lim, amka):
 # ========================================================================
 #                               Media Gen 
 # ========================================================================
-media_num = 0;
+
 def generate_media_aux(fdr):
+    global media_num;
+    media_num += 1;
     path = f"/media/images/image_{Faker('en_GB').word()}.{random.choice(['jpg', 'png', 'jpeg'])}"
     description = fake.text(max_nb_chars=200)
 
-    fdr.write(f"INSERT INTO media (path, description) VALUES ('{path}', '{description}');\n")
-    global media_num;
-    media_num += 1;
+    fdr.write(f"INSERT INTO media (media_id, path, description) VALUES ('{media_num}', '{path}', '{description}');\n")
 
 def generate_media(fdr, table, id):
     generate_media_aux(fdr)
@@ -357,7 +373,7 @@ def generate_media(fdr, table, id):
 # ========================================================================
 #                             Lab Test Gen 
 # ========================================================================
-lab_test_id = 0;
+
 def generate_lab_test(fdr):
     global lab_test_id;
     lab_test_id += 1;
@@ -367,7 +383,7 @@ def generate_lab_test(fdr):
     result = fake.text(max_nb_chars=200)
     cost = round(random.uniform(10, 9999), 2)
 
-    fdr.write(f"INSERT INTO lab_test (med_proc_id, doc_id, date, result, cost) VALUES ('{med_proc_id}', '{doc_id}', '{date}', '{result}', '{cost}');\n")
+    fdr.write(f"INSERT INTO lab_test (lab_test_id, med_proc_id, doc_id, date, result, cost) VALUES ('{lab_test_id}', '{med_proc_id}', '{doc_id}', '{date}', '{result}', '{cost}');\n")
     return lab_test_id
 
 def assign_hosp_to_lab_test(fdr, _hosp_id, _lab_test_id):
@@ -409,7 +425,7 @@ def generate_med_act(fdr):
     else:
         room_id = random.choice(room_ids)
 
-    fdr.write(f"INSERT INTO medical_act (type, med_proc_id, start_datetime, end_datetime, room_id, cost) VALUES ('{type_t}', '{med_proc_id}', '{start_datetime}', '{end_datetime}', '{room_id}', '{cost}');\n")
+    fdr.write(f"INSERT INTO medical_act (med_act_id, type, med_proc_id, start_datetime, end_datetime, room_id, cost) VALUES ('{med_act_id}', '{type_t}', '{med_proc_id}', '{start_datetime}', '{end_datetime}', '{room_id}', '{cost}');\n")
     return med_act_id
 
 
@@ -433,7 +449,6 @@ def generate_rating(fdr,_hosp_id, amka):
 # ========================================================================
 #                             Hospitalisation 
 # ========================================================================
-hosp_id = 0;
 
 def assign_to_patient_record(fdr, _hosp_id):
     amka = random.choice(patient_ids)
@@ -463,7 +478,7 @@ def generate_hospitalisation(fdr):
     costing_id = random.randint(1, cost_num)
     carrier_id = random.randint(1, insurance_carrier_num)
 
-    fdr.write(f"INSERT INTO hospitalisation (admission_date, discharge_date, dept_name, bed_id, costing_id, carrier_id) VALUES ('{admission_date.date()}', {'NULL' if discharge_date is None else '\'' + str(discharge_date.date()) + '\''}, '{dept_name}', '{bed_id}', '{costing_id}', '{carrier_id}');\n")
+    fdr.write(f"INSERT INTO hospitalisation (hosp_id, admission_date, discharge_date, dept_name, bed_id, costing_id, carrier_id) VALUES ('{hosp_id}', '{admission_date.date()}', {'NULL' if discharge_date is None else '\'' + str(discharge_date.date()) + '\''}, '{dept_name}', '{bed_id}', '{costing_id}', '{carrier_id}');\n")
 
     # Lab test
     if (random.random() < 0.6):
@@ -482,7 +497,6 @@ def generate_hospitalisation(fdr):
 # ========================================================================
 #                           Prescription Gen 
 # ========================================================================
-prescr_id = 0;
 
 def prescribe_prods(fdr, _prescr_id):
     pharm_prod_id = random.randint(1, pharm_prod_num)
@@ -499,14 +513,13 @@ def generate_prescription(fdr):
     doctor_id = random.choice(doctor_ids)
     patient_id = random.choice(patient_ids)
 
-    fdr.write(f"INSERT INTO prescription (doctor_id, patient_id) VALUES ('{doctor_id}', '{patient_id}');\n")
+    fdr.write(f"INSERT INTO prescription (prescription_id, doctor_id, patient_id) VALUES ('{prescr_id}', '{doctor_id}', '{patient_id}');\n")
 
     prescribe_prods(fdr, prescr_id)
 
 # ========================================================================
 #                               Shift Gen 
 # ========================================================================
-shift_id = 0;
 
 def assign_shift_staff(fdr, table, amka, _shift_id):
     fdr.write(f"INSERT IGNORE INTO {table}_shift (AMKA, shift_id) VALUES ('{amka}', '{_shift_id}');\n")
@@ -517,7 +530,7 @@ def generate_shift(fdr):
     day = random_date(_start=2024, _end=2026);
     type_t = random.choice(['07:00-15:00', '15:00-23:00', '23:00-07:00'])
 
-    fdr.write(f"INSERT INTO shift (day, type) VALUES ('{day}', '{type_t}');\n")
+    fdr.write(f"INSERT INTO shift (shift_id, day, type) VALUES ('{shift_id}', '{day}', '{type_t}');\n")
 
     d = random.sample(doctor_ids, random.randint(3, min(8, len(doctor_ids))))
     n = random.sample(nurse_ids, random.randint(6, min(10, len(nurse_ids))))
@@ -603,9 +616,9 @@ def main():
         for _ in range(equip_num):
             generate_equipment(fdr)
 
-        fdr.write(f"INSERT INTO insurance_carrier (name) VALUES ('Ανασφάλιστος');\n")
-        for _ in range(insurance_carrier_num - 1):
-            generate_insurance(fdr)
+        fdr.write(f"INSERT INTO insurance_carrier (carrier_id, name) VALUES (1, 'Ανασφάλιστος');\n")
+        for i in range(insurance_carrier_num - 1):
+            generate_insurance(fdr, i + 2)
 
         for i in patient_ids:
             assign_to_carrier(fdr, insurance_carrier_num, i)

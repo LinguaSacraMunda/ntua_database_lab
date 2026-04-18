@@ -1230,7 +1230,7 @@ CREATE TRIGGER ins_prescribed_prod_patient_allergy BEFORE INSERT ON prescribed_p
         SELECT *
         FROM product_act_sub pas
         INNER JOIN patient_allergy pa ON pas.act_sub_id = pa.act_sub_id
-        WHERE pa.AMKA = patient_id 
+        WHERE pa.AMKA = patient_id_t 
           AND pas.act_sub_id IN (SELECT act_sub_id 
                                  FROM product_act_sub 
                                  WHERE pharm_prod_id = NEW.pharm_prod_id)
@@ -1253,7 +1253,7 @@ CREATE TRIGGER upd_prescribed_prod_patient_allergy BEFORE UPDATE ON prescribed_p
         SELECT *
         FROM product_act_sub pas
         INNER JOIN patient_allergy pa ON pas.act_sub_id = pa.act_sub_id
-        WHERE pa.AMKA = patient_id 
+        WHERE pa.AMKA = patient_id_t 
           AND pas.act_sub_id IN (SELECT act_sub_id 
                                  FROM product_act_sub 
                                  WHERE pharm_prod_id = NEW.pharm_prod_id)

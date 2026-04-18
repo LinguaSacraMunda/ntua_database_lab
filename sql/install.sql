@@ -22,7 +22,7 @@ CREATE TABLE triage (
     arrival_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     symptoms TEXT NOT NULL,
     PRIMARY KEY (triage_id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for patient
@@ -52,21 +52,21 @@ CREATE TABLE patient (
     PRIMARY KEY (AMKA),
     INDEX idx_patient_last_name (last_name),
     CONSTRAINT fk_patient_triage FOREIGN KEY (triage_id) REFERENCES triage (triage_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE patient_email (
     AMKA VARCHAR(10) NOT NULL,
     email_address VARCHAR(45) NOT NULL,
     PRIMARY KEY (AMKA, email_address),
     CONSTRAINT fk_patient_email FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE patient_phone (
     AMKA VARCHAR(10) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
     PRIMARY KEY (AMKA, phone_number),
     CONSTRAINT fk_patient_phone FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for emergency contact 
@@ -80,7 +80,7 @@ CREATE TABLE emergency_contact (
     phone_number VARCHAR(20) NOT NULL,
     PRIMARY KEY (patient_id, first_name, last_name, phone_number),
     CONSTRAINT fk_emergency_contact FOREIGN KEY (patient_id) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for nurse 
@@ -98,21 +98,21 @@ CREATE TABLE nurse (
     PRIMARY KEY (AMKA),
     INDEX idx_nurse_last_name (last_name),
     CONSTRAINT fk_nurse_dept FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE nurse_email (
     AMKA VARCHAR(10) NOT NULL,
     email_address VARCHAR(45) NOT NULL,
     PRIMARY KEY (AMKA, email_address),
     CONSTRAINT fk_nurse_email FOREIGN KEY (AMKA) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE nurse_phone (
     AMKA VARCHAR(10) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
     PRIMARY KEY (AMKA, phone_number),
     CONSTRAINT fk_nurse_phone FOREIGN KEY (AMKA) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 --
@@ -132,21 +132,21 @@ CREATE TABLE administrative_staff (
     PRIMARY KEY (AMKA),
     INDEX idx_admin_last_name (last_name),
     CONSTRAINT fk_admin_dept FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE admin_email (
     AMKA VARCHAR(10) NOT NULL,
     email_address VARCHAR(45) NOT NULL,
     PRIMARY KEY (AMKA, email_address),
     CONSTRAINT fk_admin_email FOREIGN KEY (AMKA) REFERENCES administrative_staff (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE admin_phone (
     AMKA VARCHAR(10) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
     PRIMARY KEY (AMKA, phone_number),
     CONSTRAINT fk_admin_phone FOREIGN KEY (AMKA) REFERENCES administrative_staff (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 --
@@ -166,21 +166,21 @@ CREATE TABLE doctor (
     PRIMARY KEY (AMKA),
     INDEX idx_doctor_last_name (last_name),
     CONSTRAINT fk_supervisor_id FOREIGN KEY (supervisor_id) REFERENCES doctor (AMKA) ON DELETE SET NULL ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE doctor_email (
     AMKA VARCHAR(10) NOT NULL,
     email_address VARCHAR(45) NOT NULL,
     PRIMARY KEY (AMKA, email_address),
     CONSTRAINT fk_doctor_email FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE doctor_phone (
     AMKA VARCHAR(10) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
     PRIMARY KEY (AMKA, phone_number),
     CONSTRAINT fk_doctor_phone FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Doctor specialisation
@@ -191,7 +191,7 @@ CREATE TABLE specialisation (
     description_eng VARCHAR(100) NOT NULL,
     description_grc VARCHAR(100) NOT NULL,
     PRIMARY KEY (spec_code)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 CREATE TABLE doc_spec (
@@ -200,7 +200,7 @@ CREATE TABLE doc_spec (
     PRIMARY KEY (AMKA, spec_code),
     CONSTRAINT fk_doctor_id FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_spec_id FOREIGN KEY (spec_code) REFERENCES specialisation (spec_code) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 
@@ -217,7 +217,7 @@ CREATE TABLE department (
     director_id VARCHAR(10) NOT NULL,
     PRIMARY KEY (dept_name),
     CONSTRAINT fk_dept_head FOREIGN KEY (director_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for doctor-department relation
@@ -229,7 +229,7 @@ CREATE TABLE doctor_dept (
     PRIMARY KEY (AMKA, dept_name),
     CONSTRAINT fk_doc_dept_doctor_id FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_doc_dept_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for room
@@ -245,7 +245,7 @@ CREATE TABLE room (
     INDEX idx_room_status (status),
     INDEX idx_fk_dept_name (dept_name),
     CONSTRAINT fk_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for beds
@@ -263,7 +263,7 @@ CREATE TABLE bed (
     INDEX idx_fk_dept_name (dept_name),
     CONSTRAINT fk_bed_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_bed_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for equipment
@@ -280,7 +280,7 @@ CREATE TABLE equipment (
     INDEX idx_fk_dept_name (dept_name),
     CONSTRAINT fk_equip_dept_name FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_equip_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*
 CREATE TABLE equipment_room (
@@ -289,7 +289,7 @@ CREATE TABLE equipment_room (
     PRIMARY KEY (UID),
     CONSTRAINT fk_equip_room_UID FOREIGN KEY (UID) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_equip_room_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE equipment_dept (
     UID VARCHAR(128) NOT NULL,
@@ -297,7 +297,7 @@ CREATE TABLE equipment_dept (
     PRIMARY KEY (UID),
     CONSTRAINT fk_equip_room_UID FOREIGN KEY (UID) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_equip_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 */
 --
 -- Table structure for shift 
@@ -311,7 +311,7 @@ CREATE TABLE shift (
     PRIMARY KEY (shift_id),
     INDEX idx_shift_type (type),
     UNIQUE (day, type)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 CREATE TABLE nurse_shift (
@@ -320,7 +320,7 @@ CREATE TABLE nurse_shift (
     PRIMARY KEY (AMKA, shift_id),
     CONSTRAINT fk_nurse_shift_nurse_id FOREIGN KEY (AMKA) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_nurse_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE doctor_shift (
     AMKA VARCHAR(10) NOT NULL,
@@ -328,7 +328,7 @@ CREATE TABLE doctor_shift (
     PRIMARY KEY (AMKA, shift_id),
     CONSTRAINT fk_doctor_shift_doctor_id FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_doctor_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE admin_shift (
     AMKA VARCHAR(10) NOT NULL,
@@ -336,7 +336,7 @@ CREATE TABLE admin_shift (
     PRIMARY KEY (AMKA, shift_id),
     CONSTRAINT fk_admin_shift_admin_id FOREIGN KEY (AMKA) REFERENCES administrative_staff (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_admin_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE dept_shift (
     dept_name VARCHAR(45) NOT NULL,
@@ -344,7 +344,7 @@ CREATE TABLE dept_shift (
     PRIMARY KEY (dept_name, shift_id),
     CONSTRAINT fk_dept_shift_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_dept_shift_shift_id FOREIGN KEY (shift_id) REFERENCES shift (shift_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 --  Table structure for insurance carrier 
@@ -354,7 +354,7 @@ CREATE TABLE insurance_carrier (
     carrier_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL,
     PRIMARY KEY(carrier_id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 CREATE TABLE patient_insurance (
@@ -363,7 +363,7 @@ CREATE TABLE patient_insurance (
     PRIMARY KEY(AMKA, carrier_id),
     CONSTRAINT fk_patient_insurance_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_patient_insurance_insurance_id FOREIGN KEY (carrier_id) REFERENCES insurance_carrier (carrier_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 --  Table structure for costing
@@ -377,7 +377,7 @@ CREATE TABLE costing (
     mean_hospit_time INT UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY (costing_id),
     UNIQUE (description)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*
 --
@@ -390,7 +390,7 @@ CREATE TABLE hospit_coverage (
     INDEX idx_fk_carrier_id (carrier_id),
     CONSTRAINT fk_const_coverage_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_const_coverage_carrier_id FOREIGN KEY (carrier_id) REFERENCES insurance_carrier (carrier_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 */
 
 --
@@ -402,7 +402,7 @@ CREATE TABLE diagnosis (
     diag_id VARCHAR(10) NOT NULL,
     description TEXT NOT NULL,
     PRIMARY KEY (diag_id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 --  Table structure for hospitalisation
@@ -423,7 +423,7 @@ CREATE TABLE hospitalisation (
     CONSTRAINT fk_hosp_bed_id FOREIGN KEY (bed_id) REFERENCES bed (bed_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_carrier_id FOREIGN KEY (carrier_id) REFERENCES insurance_carrier (carrier_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_costing_id FOREIGN KEY (costing_id) REFERENCES costing (costing_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for relation hospitalisation ---< has_record >--> patient
@@ -436,7 +436,7 @@ CREATE TABLE patient_record (
     INDEX idx_fk_patient_id (AMKA),
     CONSTRAINT fk_patient_record_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_patient_record_hospitalisation_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 --  Table structures for admission and discharge diagnosis
@@ -448,7 +448,7 @@ CREATE TABLE admission_diagnosis (
     PRIMARY KEY (hosp_id, diag_id),
     CONSTRAINT fk_adm_diag_hospitalisation_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_adm_diag_diagnosis_id FOREIGN KEY (diag_id) REFERENCES diagnosis (diag_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 CREATE TABLE discharge_diagnosis (
@@ -457,7 +457,7 @@ CREATE TABLE discharge_diagnosis (
     PRIMARY KEY (hosp_id, diag_id),
     CONSTRAINT fk_dis_diag_hospitalisation_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_dis_diag_diagnosis_id FOREIGN KEY (diag_id) REFERENCES diagnosis (diag_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 --  Table structures for medical procedure 
@@ -470,7 +470,7 @@ CREATE TABLE medical_procedure (
     PRIMARY KEY (med_proc_id),
     INDEX idx_med_proc_code (med_proc_code),
     UNIQUE (med_proc_code)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 --  Table structures for lab test
@@ -488,7 +488,7 @@ CREATE TABLE lab_test (
     INDEX idx_fk_doctor_id (doc_id),
     CONSTRAINT fk_lab_test_med_procedure_id FOREIGN KEY (med_proc_id) REFERENCES medical_procedure (med_proc_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_lab_test_doctor_id FOREIGN KEY (doc_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 --
@@ -501,7 +501,7 @@ CREATE TABLE hosp_lab_test (
     PRIMARY KEY (lab_test_id),
     CONSTRAINT fk_hosp_lab_test_lab_test_id FOREIGN KEY (lab_test_id) REFERENCES lab_test (lab_test_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_lab_test_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for medical act
@@ -521,7 +521,7 @@ CREATE TABLE medical_act (
     CHECK (start_datetime < end_datetime),
     CONSTRAINT fk_medical_act_med_procedure_id FOREIGN KEY (med_proc_id) REFERENCES medical_procedure (med_proc_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_medical_act_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for surgical act and staff assistance 
@@ -533,7 +533,7 @@ CREATE TABLE surgical_act (
     PRIMARY KEY (med_act_id, primary_doc_id),
     CONSTRAINT fk_surgery_med_procedure_id FOREIGN KEY (med_act_id) REFERENCES medical_act (med_act_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_surgery_primary_doc_id FOREIGN KEY (primary_doc_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE surgical_act_doctor_assistants (
     med_act_id INT UNSIGNED NOT NULL,
@@ -541,7 +541,7 @@ CREATE TABLE surgical_act_doctor_assistants (
     PRIMARY KEY (med_act_id, assistant_id),
     CONSTRAINT fk_surg_doc_surg_act_id FOREIGN KEY (med_act_id) REFERENCES surgical_act (med_act_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_surg_doc_assist_id FOREIGN KEY (assistant_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE surgical_act_nurse_assistants (
     med_act_id INT UNSIGNED NOT NULL,
@@ -549,7 +549,7 @@ CREATE TABLE surgical_act_nurse_assistants (
     PRIMARY KEY (med_act_id, assistant_id),
     CONSTRAINT fk_surg_nurse_surg_act_id FOREIGN KEY (med_act_id) REFERENCES surgical_act (med_act_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_surg_nurse_assist_id FOREIGN KEY (assistant_id) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for relation hospitalisation <--< has >--- medical_act 
@@ -562,7 +562,7 @@ CREATE TABLE hosp_med_act (
     INDEX idx_fk_hosp_id (hosp_id),
     CONSTRAINT fk_hosp_med_act_med_act_id FOREIGN KEY (med_act_id) REFERENCES medical_act (med_act_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_med_act_hospit_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for rating 
@@ -580,7 +580,7 @@ CREATE TABLE rating (
     INDEX idx_fk_patient_id (AMKA),
     CONSTRAINT fk_rating_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_rating_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structures for pharmaceutical products
@@ -593,13 +593,13 @@ CREATE TABLE active_substance (
     PRIMARY KEY (act_sub_id),
     -- INDEX idx_act_sub (act_sub)
     INDEX idx_act_sub (act_sub_full(100))
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE route_of_admission (
     route_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     type VARCHAR(255) NOT NULL UNIQUE,
     PRIMARY KEY (route_id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE pharmaceutical_product (
     pharm_prod_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -610,7 +610,7 @@ CREATE TABLE pharmaceutical_product (
     email VARCHAR(100) NOT NULL,
     phone VARCHAR(100) NOT NULL,
     PRIMARY KEY (pharm_prod_id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE product_act_sub (
     act_sub_id INT UNSIGNED NOT NULL,
@@ -618,7 +618,7 @@ CREATE TABLE product_act_sub (
     PRIMARY KEY (act_sub_id, pharm_prod_id),
     CONSTRAINT fk_prod_act_sub_sub_id FOREIGN KEY (act_sub_id) REFERENCES active_substance (act_sub_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_prod_act_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE product_route (
     route_id INT UNSIGNED NOT NULL,
@@ -626,7 +626,7 @@ CREATE TABLE product_route (
     PRIMARY KEY (route_id, pharm_prod_id),
     CONSTRAINT fk_prod_route_route_id FOREIGN KEY (route_id) REFERENCES route_of_admission (route_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_prod_route_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structures for patient allergies 
@@ -638,7 +638,7 @@ CREATE TABLE patient_allergy (
     PRIMARY KEY (AMKA, act_sub_id),
     CONSTRAINT fk_allergy_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_allergy_substance_id FOREIGN KEY (act_sub_id) REFERENCES active_substance (act_sub_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structures for prescription 
@@ -653,7 +653,7 @@ CREATE TABLE prescription (
     INDEX idx_fk_patient_id (patient_id),
     CONSTRAINT fk_prescription_doctor_id FOREIGN KEY (doctor_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_prescription_patient_id FOREIGN KEY (patient_id) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 CREATE TABLE prescribed_products (
@@ -666,7 +666,7 @@ CREATE TABLE prescribed_products (
     PRIMARY KEY (prescription_id, pharm_prod_id, start_date),
     CONSTRAINT fk_prescr_prod_prescription_id FOREIGN KEY (prescription_id) REFERENCES prescription (prescription_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_prescr_prod_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structures for media 
@@ -677,7 +677,7 @@ CREATE TABLE media (
     path VARCHAR(255) NOT NULL,
     description TEXT,
     PRIMARY KEY (media_id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE doctor_media (
     media_id INT UNSIGNED NOT NULL,
@@ -685,7 +685,7 @@ CREATE TABLE doctor_media (
     PRIMARY KEY (media_id, doctor_id),
     CONSTRAINT fk_doctor_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_doctor_media_entity_id FOREIGN KEY (doctor_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE nurse_media (
     media_id INT UNSIGNED NOT NULL,
@@ -693,7 +693,7 @@ CREATE TABLE nurse_media (
     PRIMARY KEY (media_id, nurse_id),
     CONSTRAINT fk_nurse_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_nurse_media_entity_id FOREIGN KEY (nurse_id) REFERENCES nurse (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 CREATE TABLE admin_media (
@@ -702,7 +702,7 @@ CREATE TABLE admin_media (
     PRIMARY KEY (media_id, admin_id),
     CONSTRAINT fk_admin_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_admin_media_entity_id FOREIGN KEY (admin_id) REFERENCES administrative_staff (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE equipment_media (
     media_id INT UNSIGNED NOT NULL,
@@ -710,7 +710,7 @@ CREATE TABLE equipment_media (
     PRIMARY KEY (media_id, equipment_id),
     CONSTRAINT fk_equipment_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_equipment_media_entity_id FOREIGN KEY (equipment_id) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE bed_media (
     media_id INT UNSIGNED NOT NULL,
@@ -718,7 +718,7 @@ CREATE TABLE bed_media (
     PRIMARY KEY (media_id, bed_id),
     CONSTRAINT fk_bed_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_bed_media_entity_id FOREIGN KEY (bed_id) REFERENCES bed (bed_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE room_media (
     media_id INT UNSIGNED NOT NULL,
@@ -726,7 +726,7 @@ CREATE TABLE room_media (
     PRIMARY KEY (media_id, room_id),
     CONSTRAINT fk_room_media_media_id FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_room_media_entity_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 
@@ -1229,7 +1229,7 @@ CREATE TRIGGER ins_prescribed_prod_patient_allergy BEFORE INSERT ON prescribed_p
     IF EXISTS (
         SELECT *
         FROM product_act_sub pas
-        INNER JOIN patient_allery pa ON pas.act_sub_id = pa.act_sub_id
+        INNER JOIN patient_allergy pa ON pas.act_sub_id = pa.act_sub_id
         WHERE pa.AMKA = patient_id 
           AND pas.act_sub_id IN (SELECT act_sub_id 
                                  FROM product_act_sub 
@@ -1252,7 +1252,7 @@ CREATE TRIGGER upd_prescribed_prod_patient_allergy BEFORE UPDATE ON prescribed_p
     IF EXISTS (
         SELECT *
         FROM product_act_sub pas
-        INNER JOIN patient_allery pa ON pas.act_sub_id = pa.act_sub_id
+        INNER JOIN patient_allergy pa ON pas.act_sub_id = pa.act_sub_id
         WHERE pa.AMKA = patient_id 
           AND pas.act_sub_id IN (SELECT act_sub_id 
                                  FROM product_act_sub 

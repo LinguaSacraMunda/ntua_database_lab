@@ -202,6 +202,7 @@ def generate_doctor(fdr):
     doe = generate_employment_date(dob)
     amka = generate_amka(dob)
     doctor_ids.append(amka)
+    supervisor_id = None
 
     first_name = fake.first_name()
     if (random.random() < 0.2):
@@ -219,12 +220,14 @@ def generate_doctor(fdr):
 
     if (rank != 'Ειδικευόμενος'):
         doctor_senior.append(amka)
+    else:
+        supervisor_id = random.choice(doctor_senior)
     if (rank == 'Διευθυντής'):
         doctor_dir.append(amka)
 
     license_num = f"{random.randint(0, 9999999999):010d}"
 
-    fdr.write(f"INSERT INTO doctor (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, license_number, rank) VALUES ('{amka}', '{first_name}', {'NULL' if middle_name is None else '\''+str(middle_name)+'\''}, '{last_name}', '{dob.date()}', '{doe.date()}', '{license_num}', '{rank}');\n")
+    fdr.write(f"INSERT INTO doctor (AMKA, first_name, middle_name, last_name, date_of_birth, date_of_employment, license_number, rank, supervisor_id) VALUES ('{amka}', '{first_name}', {'NULL' if middle_name is None else '\''+str(middle_name)+'\''}, '{last_name}', '{dob.date()}', '{doe.date()}', '{license_num}', '{rank}', {'NULL' if supervisor_id is None else '\''+str(supervisor_id)+'\''});\n")
 
     return amka
 
@@ -396,7 +399,7 @@ def generate_med_act(fdr):
     type_t = random.choice(['Χειρουργική', 'Διαγνωστική', 'Θεραπευτική'])
     med_proc_id = random.randint(1, 6608)
     start_datetime = random_date()
-    end_datetime = start_datetime + timedelta(days=random.randint(0, 100))
+    end_datetime = start_datetime + timedelta(days=random.randint(1, 100), hours=random.randint(1,10))
     result = fake.text(max_nb_chars=200)
     cost = round(random.uniform(10, 9999), 2)
 
@@ -579,9 +582,6 @@ def main():
                 generate_specialisation(fdr, amka)
 
         doctor_jr_ids = list(set(doctor_ids) - set(doctor_senior))
-        for i in doctor_jr_ids:
-            generate_supervision(fdr, i)
-
         for i in list(set(doctor_ids) - set(doctor_dir) - set(doctor_jr_ids)):
             if (random.random() < 0.7):
                 generate_supervision(fdr, i)

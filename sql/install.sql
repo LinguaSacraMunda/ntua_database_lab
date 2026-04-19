@@ -1446,6 +1446,54 @@ FROM doctor d
 INNER JOIN doc_spec ds ON d.AMKA = ds.AMKA
 INNER JOIN specialisation s ON ds.spec_code = s.spec_code;
 
+
+
+-- ==============================================================================
+--                                  Functions 
+-- ==============================================================================
+
+DELIMITER ;;
+
+--
+-- Calculate new cost, depending on stay duration
+--
+
+CREATE FUNCTION calculate_hospit_cost(hosp_id_t INT)
+RETURNS NUMERIC(9, 2)
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE base_cost_t NUMERIC(9, 2);
+    DECLARE mean_time_t INT UNSIGNED;
+    DECLARE admission_t TIMESTAMP;
+    DECLARE discharge_t TIMESTAMP;
+    DECLARE elapsed_days INT UNSIGNED;
+    DECLARE extra_days INT UNSIGNED;
+
+    SELECT c.base_cost, c.mean_hospit_time, h.admission_date, h.discharge_date
+    INTO base_cost_t, mean_time_t, admission_t, discharge_t
+    FROM hospitalisation h
+    INNER JOIN costing c ON h.costing_id = c.costing_id
+    WHERE h.hosp_id = hosp_id_t;
+
+    IF discharge_t IS NULL THEN
+        SET discharge_t = NOW();
+    END IF;
+
+    SET elapsed_days = TIMESTAMPDIFF(DAY, admission_t, discharge_t);
+
+    IF elapsed_days <= mean_time_t THEN
+        RETURN base_cost_t;
+    END IF;
+
+    SET extra_days = elapsed_days - mean_time_t;
+
+    RETURN base_cost_t * (1 + 0.1 * extra_days);
+
+END;;
+
+DELIMITER ;
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

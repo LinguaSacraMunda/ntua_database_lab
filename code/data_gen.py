@@ -379,7 +379,7 @@ def generate_lab_test(fdr):
     lab_test_id += 1;
     med_proc_id = random.randint(6609, med_proc_num)
     doc_id = random.choice(doctor_ids)
-    date = random_date()
+    date = random_date(_start=2000, _end=2026)
     result = fake.text(max_nb_chars=200)
     cost = round(random.uniform(10, 9999), 2)
 
@@ -414,7 +414,7 @@ def generate_med_act(fdr):
     med_act_id += 1;
     type_t = random.choice(['Χειρουργική', 'Διαγνωστική', 'Θεραπευτική'])
     med_proc_id = random.randint(1, 6608)
-    start_datetime = random_date()
+    start_datetime = random_date(_start=2000, _end=2026)
     end_datetime = start_datetime + timedelta(days=random.randint(1, 100), hours=random.randint(1,10))
     result = fake.text(max_nb_chars=200)
     cost = round(random.uniform(10, 9999), 2)
@@ -466,7 +466,7 @@ def generate_discharge_diag(fdr, _hosp_id):
 def generate_hospitalisation(fdr):
     global hosp_id;
     hosp_id += 1;
-    admission_date = random_date(1990, 2025)
+    admission_date = random_date(_start=2000, _end=2026)
     generate_admission_diag(fdr, hosp_id)
     if (random.random() < 0.5):
         discharge_date = admission_date + timedelta(days=random.randint(1, 365))
@@ -500,7 +500,7 @@ def generate_hospitalisation(fdr):
 
 def prescribe_prods(fdr, _prescr_id):
     pharm_prod_id = random.randint(1, pharm_prod_num)
-    start_date = random_date()
+    start_date = random_date(_start=2000, _end=2026)
     end_date = start_date + timedelta(days=random.randint(1, 60))
     dosage = fake.text(max_nb_chars=200)
     frequency = fake.text(max_nb_chars=80)

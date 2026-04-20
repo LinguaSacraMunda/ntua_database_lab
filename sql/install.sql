@@ -373,7 +373,7 @@ CREATE TABLE costing (
     costing_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     KEN_code VARCHAR(5) NOT NULL,
     description TEXT,
-    base_cost NUMERIC(9,2) NOT NULL DEFAULT 000000.00 CHECK (base_cost >= 0),
+    base_cost NUMERIC(9,2) NOT NULL DEFAULT 0.00 CHECK (base_cost >= 0),
     mean_hospit_time INT UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY (costing_id),
     UNIQUE (description)
@@ -411,13 +411,14 @@ CREATE TABLE diagnosis (
 CREATE TABLE hospitalisation (
     hosp_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     admission_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    discharge_date TIMESTAMP DEFAULT NULL CHECK (discharge_date = NULL OR discharge_date > admission_date),
+    discharge_date TIMESTAMP DEFAULT NULL CHECK (discharge_date IS NULL OR discharge_date > admission_date),
     dept_name VARCHAR(45) NOT NULL,
     bed_id INT UNSIGNED NOT NULL,
     costing_id INT UNSIGNED NOT NULL,
     carrier_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (hosp_id),
     INDEX idx_admission_date (admission_date),
+    INDEX idx_fk_carrier_id (carrier_id),       -- hosp covered by certain carrier
     INDEX idx_fk_dept_name (dept_name),
     CONSTRAINT fk_hosp_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_bed_id FOREIGN KEY (bed_id) REFERENCES bed (bed_id) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -482,7 +483,7 @@ CREATE TABLE lab_test (
     doc_id VARCHAR(45) NOT NULL,
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     result TEXT NOT NULL,
-    cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00 CHECK (cost >= 0),
+    cost NUMERIC(8,2) NOT NULL DEFAULT 0.00 CHECK (cost >= 0),
     PRIMARY KEY (lab_test_id),
     INDEX idx_fk_med_proc_id (med_proc_id),
     INDEX idx_fk_doctor_id (doc_id),
@@ -514,7 +515,7 @@ CREATE TABLE medical_act (
     start_datetime DATETIME NOT NULL,
     end_datetime DATETIME NOT NULL,
     room_id INT UNSIGNED NOT NULL,
-    cost NUMERIC(8,2) NOT NULL DEFAULT 000000.00 CHECK (cost >= 0),
+    cost NUMERIC(8,2) NOT NULL DEFAULT 0.00 CHECK (cost >= 0),
     PRIMARY KEY (med_act_id),
     INDEX idx_fk_med_proc_id (med_proc_id),
     INDEX idx_fk_room_id (room_id),
@@ -588,10 +589,8 @@ CREATE TABLE rating (
 
 CREATE TABLE active_substance (
     act_sub_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    -- act_sub VARCHAR(100) NOT NULL,
     act_sub_full TEXT NOT NULL UNIQUE,
     PRIMARY KEY (act_sub_id),
-    -- INDEX idx_act_sub (act_sub)
     INDEX idx_act_sub (act_sub_full(100))
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1231,9 +1230,7 @@ CREATE TRIGGER ins_prescribed_prod_patient_allergy BEFORE INSERT ON prescribed_p
         FROM product_act_sub pas
         INNER JOIN patient_allergy pa ON pas.act_sub_id = pa.act_sub_id
         WHERE pa.AMKA = patient_id_t 
-          AND pas.act_sub_id IN (SELECT act_sub_id 
-                                 FROM product_act_sub 
-                                 WHERE pharm_prod_id = NEW.pharm_prod_id)
+          AND pas.pharm_prod_id  = NEW.pharm_prod_id
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Patient allergic to prescribed active substance';
@@ -1254,10 +1251,7 @@ CREATE TRIGGER upd_prescribed_prod_patient_allergy BEFORE UPDATE ON prescribed_p
         FROM product_act_sub pas
         INNER JOIN patient_allergy pa ON pas.act_sub_id = pa.act_sub_id
         WHERE pa.AMKA = patient_id_t 
-          AND pas.act_sub_id IN (SELECT act_sub_id 
-                                 FROM product_act_sub 
-                                 WHERE pharm_prod_id = NEW.pharm_prod_id)
-
+          AND pas.pharm_prod_id  = NEW.pharm_prod_id
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Patient allergic to prescribed active substance';
@@ -1459,7 +1453,7 @@ DELIMITER ;;
 --
 
 CREATE FUNCTION calculate_hospit_cost(hosp_id_t INT)
-RETURNS NUMERIC(9, 2)
+RETURNS NUMERIC(15, 2)
 DETERMINISTIC
 READS SQL DATA
 BEGIN
@@ -1467,8 +1461,8 @@ BEGIN
     DECLARE mean_time_t INT UNSIGNED;
     DECLARE admission_t TIMESTAMP;
     DECLARE discharge_t TIMESTAMP;
-    DECLARE elapsed_days INT UNSIGNED;
-    DECLARE extra_days INT UNSIGNED;
+    DECLARE elapsed_days INT DEFAULT 0;
+    DECLARE extra_days INT DEFAULT 0;
 
     SELECT c.base_cost, c.mean_hospit_time, h.admission_date, h.discharge_date
     INTO base_cost_t, mean_time_t, admission_t, discharge_t

@@ -1,4 +1,6 @@
-SELECT d.description_grc, d.AMKA, s.shift_id, sa.primary_doc_id
+SELECT d.description_grc, d.AMKA, 
+EXISTS (SELECT * FROM surgical_act sat ON d.AMKA = sat.primary_doc_id INNER JOIN medical_act mat ON sat.med_act_id = mat.med_act_id WHERE YEAR(mat.start_datetime) = YEAR(NOW())), 
+    sa.primary_doc_id
 FROM vw_doctor_info d
 INNER JOIN doctor_shift ds ON d.AMKA = ds.AMKA
 INNER JOIN shift s ON s.shift_id = ds.shift_id

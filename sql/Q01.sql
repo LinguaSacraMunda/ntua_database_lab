@@ -10,4 +10,4 @@ FROM
     hospitalisation h
     INNER JOIN costing c ON h.costing_id = c.costing_id
     INNER JOIN insurance_carrier i ON h.carrier_id = i.carrier_id
-GROUP BY h.dept_name, YEAR(h.admission_date), i.carrier_id;
+GROUP BY h.dept_name, YEAR(h.admission_date), c.KEN_code, i.carrier_id;

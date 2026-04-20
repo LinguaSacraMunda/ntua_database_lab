@@ -1441,7 +1441,7 @@ ORDER BY level DESC, arrival_time ASC;
 -- Print doctor specialisation along with values of doctor table
 --
 CREATE VIEW vw_doctor_info AS
-SELECT d.AMKA, d.first_name, d.last_name, d.middle_name, d.date_of_birth, d.date_of_employment, d.license_number, d.supervisor_id, s.description_grc
+SELECT d.AMKA, d.first_name, d.last_name, d.middle_name, d.date_of_birth, d.date_of_employment, d.license_number, d.supervisor_id, s.spec_code, s.description_grc
 FROM doctor d
 INNER JOIN doc_spec ds ON d.AMKA = ds.AMKA
 INNER JOIN specialisation s ON ds.spec_code = s.spec_code;

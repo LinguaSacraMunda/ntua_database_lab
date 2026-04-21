@@ -244,10 +244,7 @@ BEGIN
             ON a.act_sub_full = t.substance;
 
         -- advance batch
-        SELECT MAX(id) INTO last_id
-        FROM staging_ema
-        WHERE id > last_id
-        LIMIT batch_size;
+        SET last_id = last_id + batch_size;
 
     END WHILE;
 
@@ -314,10 +311,7 @@ BEGIN
             ON r.type = t.route;
 
         -- advance batch
-        SELECT MAX(id) INTO last_id
-        FROM staging_ema
-        WHERE id > last_id
-        LIMIT batch_size;
+        SET last_id = last_id + batch_size;
 
     END WHILE;
 

@@ -26,4 +26,4 @@ FROM
     INNER JOIN surgical_act_doctor_assistants sada ON hma.med_act_id = sada.med_act_id
     INNER JOIN rating r ON h.hosp_id = r.hosp_id
 ) as hlpr
-GROUP BY AMKA
+GROUP BY AMKA;

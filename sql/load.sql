@@ -8,7 +8,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- Doctor specialisation
 --
 
-DELETE FROM specialisation;
+TRUNCATE TABLE specialisation;
 LOAD DATA LOCAL INFILE 'data/042026_Specialty_Restrictions_AHP_MP.csv'
 INTO TABLE specialisation
 FIELDS TERMINATED BY ','
@@ -21,7 +21,7 @@ IGNORE 1 ROWS
 -- KEN codes
 --
 
-DELETE FROM costing;
+TRUNCATE TABLE costing;
 LOAD DATA LOCAL INFILE 'data/4.1 Λίστα Κλειστών Ενοποιημένων Νοσηλίων.csv'
 INTO TABLE costing 
 FIELDS TERMINATED BY ','
@@ -35,7 +35,7 @@ SET base_cost = REPLACE(@hlpr, ' ', '');
 -- ICD-10 codes
 --
 
-DELETE FROM diagnosis;
+TRUNCATE TABLE diagnosis;
 LOAD DATA LOCAL INFILE 'data/4.2 Κωδικοί ICD-10 15-12-2011.csv'
 INTO TABLE diagnosis 
 FIELDS TERMINATED BY ','
@@ -48,7 +48,7 @@ IGNORE 1 ROWS
 -- Medical procedures
 --
 
-DELETE FROM medical_procedure;
+TRUNCATE TABLE medical_procedure;
 LOAD DATA LOCAL INFILE 'data/ΕΛΛΗΝΙΚΗ_ΟΝΟΜΑΤΟΛΟΓΙΑ_ΚΑΙ_ΚΩΔΙΚΟΠΟΙΗΣΗ_ΤΩΝ_ΙΑΤΡΙΚΩΝ_ΠΡΑΞΕΩΝ.csv'
 INTO TABLE medical_procedure 
 FIELDS TERMINATED BY ','
@@ -64,11 +64,11 @@ IGNORE 2 ROWS
 
 SET sql_mode = '';
 
-DELETE FROM pharmaceutical_product;
-DELETE FROM active_substance;
-DELETE FROM route_of_admission;
-DELETE FROM product_act_sub;
-DELETE FROM product_route;
+TRUNCATE TABLE pharmaceutical_product;
+TRUNCATE TABLE active_substance;
+TRUNCATE TABLE route_of_admission;
+TRUNCATE TABLE product_act_sub;
+TRUNCATE TABLE product_route;
 -- =========================================
 -- 1. STAGING TABLE (DROP + CREATE)
 -- =========================================
@@ -343,4 +343,3 @@ DROP PROCEDURE IF EXISTS load_product_act_sub_fast;
 DROP PROCEDURE IF EXISTS load_product_route_fast;
 
 SET FOREIGN_KEY_CHECKS = 1;
-

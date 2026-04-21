@@ -1387,7 +1387,6 @@ END;;
 -- =========================================================== 
 --                     Medical/test procedures 
 -- =========================================================== 
--- A rating can only be given after a hospitalisation has ended
 
 CREATE TRIGGER ins_lab_test BEFORE INSERT ON lab_test FOR EACH ROW BEGIN
     IF NEW.med_proc_id <= 6608 THEN

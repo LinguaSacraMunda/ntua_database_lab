@@ -1,5 +1,5 @@
 SELECT UNIQUE
-    RTRIM(d.description_grc),
+    RTRIM(d.description_grc) AS 'Specialty',
     d.AMKA, 
     d.first_name,
     d.last_name,

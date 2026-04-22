@@ -283,23 +283,6 @@ CREATE TABLE equipment (
     CONSTRAINT fk_equip_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*
-CREATE TABLE equipment_room (
-    UID VARCHAR(128) NOT NULL,
-    room_id INT UNSIGNED NOT NULL,
-    PRIMARY KEY (UID),
-    CONSTRAINT fk_equip_room_UID FOREIGN KEY (UID) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_equip_room_room_id FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE equipment_dept (
-    UID VARCHAR(128) NOT NULL,
-    dept_name VARCHAR(45) NOT NULL,
-    PRIMARY KEY (UID),
-    CONSTRAINT fk_equip_room_UID FOREIGN KEY (UID) REFERENCES equipment (UID) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_equip_room_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-*/
 --
 -- Table structure for shift 
 --
@@ -381,20 +364,6 @@ CREATE TABLE costing (
     UNIQUE (description)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*
---
--- Table structure for relation costing ---< covered_by >--> insurance_carrier
---
-CREATE TABLE hospit_coverage (
-    hosp_id INT UNSIGNED NOT NULL,
-    carrier_id INT UNSIGNED NOT NULL,
-    PRIMARY KEY (hosp_id),
-    INDEX idx_fk_carrier_id (carrier_id),
-    CONSTRAINT fk_const_coverage_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_const_coverage_carrier_id FOREIGN KEY (carrier_id) REFERENCES insurance_carrier (carrier_id) ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-*/
-
 --
 --  Table structure for dianosis
 --      based on ICD-10 codes
@@ -419,7 +388,7 @@ CREATE TABLE hospitalisation (
     costing_id INT UNSIGNED NOT NULL,
     carrier_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (hosp_id),
-    INDEX idx_admission_date (admission_date),
+    INDEX idx_admission_date (admission_date),  -- Q09
     INDEX idx_fk_carrier_id (carrier_id),       -- hosp covered by certain carrier
     INDEX idx_fk_dept_name (dept_name),
     CONSTRAINT fk_hosp_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,

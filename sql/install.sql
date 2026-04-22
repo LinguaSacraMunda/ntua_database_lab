@@ -33,6 +33,7 @@ CREATE TABLE patient (
     first_name VARCHAR(45) NOT NULL,
     middle_name VARCHAR(45) DEFAULT NULL,
     last_name VARCHAR(45) NOT NULL,
+    patronym VARCHAR(45) DEFAULT NULL,
     date_of_birth DATE NOT NULL,
     sex  ENUM('male', 'female', 'other') NOT NULL,
     weight NUMERIC(5,2) NOT NULL DEFAULT 000.00 CHECK (weight >= 0),   -- in kg
@@ -45,7 +46,7 @@ CREATE TABLE patient (
     municipality VARCHAR(45) DEFAULT NULL,
     prefecture VARCHAR(45) DEFAULT NULL,
     -- address end
-    profession VARCHAR(45) DEFAULT NULL,
+    profession VARCHAR(255) DEFAULT NULL,
     citizenship VARCHAR(45) DEFAULT NULL,
 
     triage_id INT UNSIGNED NOT NULL,
@@ -196,7 +197,7 @@ CREATE TABLE specialisation (
 
 CREATE TABLE doc_spec (
     AMKA VARCHAR(10) NOT NULL,
-    spec_code VARCHAR(5) NOT NULL,
+    spec_code VARCHAR(7) NOT NULL,
     PRIMARY KEY (AMKA, spec_code),
     CONSTRAINT fk_doctor_id FOREIGN KEY (AMKA) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_spec_id FOREIGN KEY (spec_code) REFERENCES specialisation (spec_code) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -213,7 +214,7 @@ CREATE TABLE department (
     description TEXT NOT NULL,
     number_of_beds INT UNSIGNED NOT NULL DEFAULT 0,
     floor VARCHAR(5) NOT NULL,
-    building VARCHAR(10) NOT NULL,
+    building VARCHAR(45) NOT NULL,
     director_id VARCHAR(10) NOT NULL,
     PRIMARY KEY (dept_name),
     CONSTRAINT fk_dept_head FOREIGN KEY (director_id) REFERENCES doctor (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE

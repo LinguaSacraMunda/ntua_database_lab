@@ -140,6 +140,8 @@ def generate_patient(fdr, triage_id):
         middle_name = None 
     last_name = fake.last_name()
 
+    patronym = fake.first_name()
+
     sex = random.choice(['male', 'female', 'other'])
 
     weight = round(random.uniform(50, 150), 2)
@@ -155,7 +157,7 @@ def generate_patient(fdr, triage_id):
     profession = fake.job()
     citizenship = fake.country()
 
-    fdr.write(f"INSERT INTO patient (AMKA, first_name, middle_name, last_name, date_of_birth, sex, weight, height, street_name, street_number, postal_code, area, municipality, prefecture,  profession, citizenship, triage_id) VALUES ('{amka}','{first_name}',{'NULL' if middle_name is None else '\'' + str(middle_name) + '\''},'{last_name}','{dob.date()}','{sex}','{weight}','{height}','{street_name}','{street_number}','{postal_code}','{area}','{municipality}','{prefecture}','{profession}','{citizenship}','{triage_id}');\n")
+    fdr.write(f"INSERT INTO patient (AMKA, first_name, middle_name, last_name, patronym, date_of_birth, sex, weight, height, street_name, street_number, postal_code, area, municipality, prefecture,  profession, citizenship, triage_id) VALUES ('{amka}','{first_name}',{'NULL' if middle_name is None else '\'' + str(middle_name) + '\''},'{last_name}', '{patronym}', '{dob.date()}','{sex}','{weight}','{height}','{street_name}','{street_number}','{postal_code}','{area}','{municipality}','{prefecture}','{profession}','{citizenship}','{triage_id}');\n")
 
     return amka
 
@@ -524,11 +526,17 @@ def generate_prescription(fdr):
 def assign_shift_staff(fdr, table, amka, _shift_id):
     fdr.write(f"INSERT IGNORE INTO {table}_shift (AMKA, shift_id) VALUES ('{amka}', '{_shift_id}');\n")
 
-def generate_shift(fdr):
+def generate_shift(fdr, _type=None, _day=None):
     global shift_id;
     shift_id += 1;
-    day = random_date(_start=2024, _end=2026);
-    type_t = random.choice(['07:00-15:00', '15:00-23:00', '23:00-07:00'])
+    day = None;
+    type_t = None;
+    if (_type == None or _day == None):
+        day = random_date(_start=2024, _end=2026)
+        type_t = random.choice(['07:00-15:00', '15:00-23:00', '23:00-07:00'])
+    else:
+        day = _day
+        type_t = _type
 
     fdr.write(f"INSERT INTO shift (shift_id, day, type) VALUES ('{shift_id}', '{day}', '{type_t}');\n")
 
@@ -548,13 +556,18 @@ def generate_shift(fdr):
     return shift_id;
 
 def generate_dept_shifts_aux(fdr, dept_name):
-    _shift_id = generate_shift(fdr)
+    day = random_date(_start=2024, _end=2026)
+    _shift_id = generate_shift(fdr,'07:00-15:00', day);
+    fdr.write(f"INSERT IGNORE INTO dept_shift (dept_name, shift_id) VALUES ('{dept_name}', '{_shift_id}');\n")
+    _shift_id = generate_shift(fdr,'15:00-23:00', day);
+    fdr.write(f"INSERT IGNORE INTO dept_shift (dept_name, shift_id) VALUES ('{dept_name}', '{_shift_id}');\n")
+    _shift_id = generate_shift(fdr,'23:00-07:00', day);
     fdr.write(f"INSERT IGNORE INTO dept_shift (dept_name, shift_id) VALUES ('{dept_name}', '{_shift_id}');\n")
 
 
 def generate_dept_shifts(fdr):
     for i in departments:
-        for _ in range(random.randint(10, 30)):
+        for _ in range(random.randint(10, 20)):
             generate_dept_shifts_aux(fdr, i)
     
 
@@ -563,7 +576,7 @@ def generate_dept_shifts(fdr):
 # ========================================================================
 def clear_tables(fdr):
     for i in tables:
-        fdr.write(f"DELETE FROM {i};\n")
+        fdr.write(f"TRUNCATE TABLE {i};\n")
     
 
 

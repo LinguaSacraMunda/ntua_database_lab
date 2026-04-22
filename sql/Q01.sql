@@ -1,7 +1,6 @@
 SELECT 
     h.dept_name 'Department',
     YEAR(h.admission_date) 'Year',
-    -- c.KEN_code KEN,
     i.name 'Insurance Carrier', 
     COUNT(h.costing_id) 'Cases covered by carrier this year', 
     SUM(c.base_cost) 'Total base cost',

@@ -897,7 +897,7 @@ CREATE TRIGGER del_doctor_shift BEFORE DELETE ON doctor_shift FOR EACH ROW BEGIN
     SELECT COUNT(*) INTO cnt
     from doctor_shift WHERE shift_id = OLD.shift_id;
 
-    if cnt < 3 THEN
+    if cnt <= 3 THEN
         UPDATE shift
         SET status = FALSE 
         WHERE shift_id = OLD.shift_id;
@@ -928,7 +928,7 @@ CREATE TRIGGER del_nurse_shift BEFORE DELETE ON nurse_shift FOR EACH ROW BEGIN
     SELECT COUNT(*) INTO cnt
     from nurse_shift WHERE shift_id = OLD.shift_id;
 
-    if cnt < 6 THEN
+    if cnt <= 6 THEN
         UPDATE shift
         SET status = FALSE 
         WHERE shift_id = OLD.shift_id;
@@ -941,7 +941,7 @@ CREATE TRIGGER del_admin_shift BEFORE DELETE ON admin_shift FOR EACH ROW BEGIN
     SELECT COUNT(*) INTO cnt
     from admin_shift WHERE shift_id = OLD.shift_id;
 
-    if cnt < 2 THEN
+    if cnt <= 2 THEN
         UPDATE shift
         SET status = FALSE 
         WHERE shift_id = OLD.shift_id;

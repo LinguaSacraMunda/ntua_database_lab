@@ -517,7 +517,8 @@ def generate_prescription(fdr):
 
     fdr.write(f"INSERT INTO prescription (prescription_id, doctor_id, patient_id) VALUES ('{prescr_id}', '{doctor_id}', '{patient_id}');\n")
 
-    prescribe_prods(fdr, prescr_id)
+    for _ in range(random.randint(1, 10)):
+        prescribe_prods(fdr, prescr_id)
 
 # ========================================================================
 #                               Shift Gen 

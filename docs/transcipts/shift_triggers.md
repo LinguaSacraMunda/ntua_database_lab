@@ -1,4 +1,4 @@
-# QUERRY
+# QUERY
 
 We want to model a hospital database with mySQL. We need to implement triggers such that no staff (that it: doctors, nurses and administrative staff) may be assigned to two consecutive shifts
 

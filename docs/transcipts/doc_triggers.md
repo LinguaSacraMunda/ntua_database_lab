@@ -1,4 +1,4 @@
-# QUERRY
+# QUERY
 
 Consider a mySQL database that has an entity worker and a relation supervise, where a worker may be supervised by another worker. The relation is many to one, as one supervisor may supervise multiple workers. We do not allow circular relations, that is, if A supervises B, then B does not supervise A. How would we implement this in code?
 
@@ -142,7 +142,7 @@ This will delete the worker with `id = 3`, and any workers supervised by them wi
 
 By following these steps, you can implement the worker-supervisor relationship with cycle prevention in your MySQL database.
 
-# QUERRY
+# QUERY
 
 Could we implement this using triggers?
 

@@ -311,6 +311,7 @@ CREATE TABLE shift (
     status BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (shift_id),
     INDEX idx_shift_type (type),
+    INDEX idx_shift_day_status_id (day, status, shift_id),      -- used for Q08
     UNIQUE (day, type)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

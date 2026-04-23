@@ -36,6 +36,8 @@ prescr_num = round(1.4 * patient_num)
 
 DISABLE_FK_CHECK = True
 
+Q03_SAME_DEPT = 5;
+
 TEMP = "/home/admin/shared_ntua/6th_semester/databases/project/"
 
 icd10_path = TEMP + "data/icd10.csv"
@@ -370,7 +372,7 @@ def generate_media_aux(fdr):
 def generate_media(fdr, table, id):
     generate_media_aux(fdr)
 
-    fdr.write(f"INSERT INTO {table}_media (media_id, {table}_id) VALUES ('{media_num}', '{table}_id');\n")
+    fdr.write(f"INSERT INTO {table}_media (media_id, {table}_id) VALUES ('{media_num}', '{id}');\n")
 
 # ========================================================================
 #                             Lab Test Gen 
@@ -452,8 +454,8 @@ def generate_rating(fdr,_hosp_id, amka):
 #                             Hospitalisation 
 # ========================================================================
 
-def assign_to_patient_record(fdr, _hosp_id):
-    amka = random.choice(patient_ids)
+def assign_to_patient_record(fdr, _hosp_id, _amka=None):
+    amka = _amka if _amka != None else random.choice(patient_ids)
     fdr.write(f"INSERT INTO patient_record (AMKA, hosp_id) VALUES ('{amka}', '{_hosp_id}');\n")
     return amka;
 
@@ -465,7 +467,7 @@ def generate_discharge_diag(fdr, _hosp_id):
     diag_id = get_icd10()
     fdr.write(f"INSERT INTO discharge_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
 
-def generate_hospitalisation(fdr):
+def generate_hospitalisation(fdr, _dept=None):
     global hosp_id;
     hosp_id += 1;
     admission_date = random_date(_start=2020, _end=2026)
@@ -475,7 +477,7 @@ def generate_hospitalisation(fdr):
         generate_discharge_diag(fdr, hosp_id)
     else:
         discharge_date = None
-    dept_name = random.choice(departments)
+    dept_name = _dept if (_dept != None) else random.choice(departments)
     bed_id = random.randint(1, bed_num)
     costing_id = random.randint(1, cost_num)
     carrier_id = random.randint(1, insurance_carrier_num)
@@ -491,6 +493,9 @@ def generate_hospitalisation(fdr):
     if (random.random() < 0.6):
         act_id = generate_med_act(fdr)
         assign_hosp_to_med_act(fdr, hosp_id, act_id)
+
+    if (_dept != None):
+        return hosp_id, discharge_date
 
     amka = assign_to_patient_record(fdr, hosp_id)
     if (discharge_date != None):
@@ -657,8 +662,18 @@ def main():
         for i in range(1, room_num + 1):
             generate_media(fdr, "room", i)
 
+
         for _ in range(hosp_num):
             generate_hospitalisation(fdr)
+
+        for _ in range(Q03_SAME_DEPT):
+            _dept = random.choice(departments)
+            _amka = random.choice(patient_ids)
+            for i in range(random.randint(3,6)):
+                hosp_id_t, dd_t = generate_hospitalisation(fdr, _dept)
+                assign_to_patient_record(fdr, hosp_id_t)
+                if (dd_t != None):
+                    generate_rating(fdr, hosp_id_t, _amka)
 
         for _ in range(prescr_num):
             generate_prescription(fdr)

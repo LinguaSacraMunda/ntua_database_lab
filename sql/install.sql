@@ -633,9 +633,20 @@ CREATE TABLE prescribed_products (
     end_date DATE NOT NULL CHECK (end_date >= start_date),
     dosage VARCHAR(255) NOT NULL,
     frequency VARCHAR(100) NOT NULL,
-    PRIMARY KEY (prescription_id, pharm_prod_id, start_date),
+    PRIMARY KEY (prescription_id, pharm_prod_id),
+    CONSTRAINT unq_prescr_prod_presc_id_prod_id_sdate UNIQUE (prescription_id, pharm_prod_id, start_date),
     CONSTRAINT fk_prescr_prod_prescription_id FOREIGN KEY (prescription_id) REFERENCES prescription (prescription_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_prescr_prod_product_id FOREIGN KEY (pharm_prod_id) REFERENCES pharmaceutical_product (pharm_prod_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE hosp_prescription (
+    hosp_id INT UNSIGNED NOT NULL,
+    prescription_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (prescription_id),
+    INDEX idx_fk_hosp_id (hosp_id),                             -- Q10
+    INDEX idx_fk_hosp_id_presc_id (hosp_id, prescription_id),    -- Q10
+    CONSTRAINT fk_hosp_prescr_prescr_id FOREIGN KEY (prescription_id) REFERENCES prescription (prescription_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_hosp_prescr_hosp_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --

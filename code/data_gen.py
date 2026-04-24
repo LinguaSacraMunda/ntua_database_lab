@@ -398,8 +398,8 @@ def assign_hosp_to_lab_test(fdr, _hosp_id, _lab_test_id):
 # ========================================================================
 med_act_id = 0;
 
-def is_surgical_act(fdr, _med_act_id):
-    primary_doc = random.choice(doctor_senior)
+def is_surgical_act(fdr, _med_act_id, _primary_doc=None):
+    primary_doc = _primary_doc if _primary_doc != None else random.choice(doctor_senior)
     fdr.write(f"INSERT INTO surgical_act (med_act_id, primary_doc_id) VALUES ('{_med_act_id}', '{primary_doc}');\n")
 
     # Assistants
@@ -490,7 +490,7 @@ def generate_hospitalisation(fdr, _dept=None):
         assign_hosp_to_lab_test(fdr, hosp_id, test_id)
 
     # Medical act
-    if (random.random() < 0.6):
+    if (random.random() < 0.8):
         act_id = generate_med_act(fdr)
         assign_hosp_to_med_act(fdr, hosp_id, act_id)
 
@@ -500,6 +500,12 @@ def generate_hospitalisation(fdr, _dept=None):
     amka = assign_to_patient_record(fdr, hosp_id)
     if (discharge_date != None):
         generate_rating(fdr, hosp_id, amka)
+
+    # Prescription
+    if (random.random() < 0.6):
+        for _ in range(random.randint(1,3)):
+            prescr_id = generate_prescription(fdr, amka)
+            assign_hosp_prescription(fdr, hosp_id, prescr_id)
 
 # ========================================================================
 #                           Prescription Gen 
@@ -514,16 +520,21 @@ def prescribe_prods(fdr, _prescr_id):
 
     fdr.write(f"INSERT INTO prescribed_products (prescription_id, pharm_prod_id, start_date, end_date, dosage, frequency) VALUES ('{_prescr_id}', '{pharm_prod_id}', '{start_date}', '{end_date}', '{dosage}', '{frequency}');\n")
 
-def generate_prescription(fdr):
+def generate_prescription(fdr, _patient=None):
     global prescr_id;
     prescr_id += 1;
     doctor_id = random.choice(doctor_ids)
-    patient_id = random.choice(patient_ids)
+    patient_id = _patient if _patient != None else random.choice(patient_ids)
 
     fdr.write(f"INSERT INTO prescription (prescription_id, doctor_id, patient_id) VALUES ('{prescr_id}', '{doctor_id}', '{patient_id}');\n")
 
     for _ in range(random.randint(1, 10)):
         prescribe_prods(fdr, prescr_id)
+
+    return prescr_id;
+
+def assign_hosp_prescription(fdr, _hosp_id, _prescr_id):
+    fdr.write(f"INSERT INTO hosp_prescription (hosp_id, prescription_id) VALUES ('{_hosp_id}', '{_prescr_id}');\n")
 
 # ========================================================================
 #                               Shift Gen 

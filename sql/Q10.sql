@@ -1,9 +1,18 @@
+
+
+-- All possible combinations of active substances
 SELECT *
-FROM prescribed_products pp
-INNER JOIN product_act_sub pas ON pp.pharm_prod_id = pas.pharm_prod_id
-WHERE pas.act_sub_id IN (
-    SELECT pas_.act_sub_id
-    FROM prescribed_products pp_t
-    INNER JOIN product_act_sub pas ON pp_t.pharm_prod_id = pas_t.pharm_prod_id
-    WHERE pp_t.hosp_id = pp.hosp_id
-    GROUP BY pp.prescription_id, pas.act_sub_id)
+FROM 
+    (SELECT pas_t.act_sub_id
+    FROM hosp_prescription hp_t
+    INNER JOIN prescribed_products pp_t ON hp_t.prescription_id = pp_t.prescription_id
+    INNER JOIN product_act_sub pas_t ON pp_t.pharm_prod_id = pas_t.pharm_prod_id
+    WHERE hp_t.hosp_id = 100) A
+INNER JOIN 
+    (SELECT pas_t.act_sub_id
+    FROM hosp_prescription hp_t
+    INNER JOIN prescribed_products pp_t ON hp_t.prescription_id = pp_t.prescription_id
+    INNER JOIN product_act_sub pas_t ON pp_t.pharm_prod_id = pas_t.pharm_prod_id
+    WHERE hp_t.hosp_id = 100) B
+ON A.act_sub_id < B.act_sub_id
+ORDER BY A.act_sub_id

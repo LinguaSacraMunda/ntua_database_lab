@@ -7,7 +7,7 @@ departments = ["Casualty", "Operating theatre (OT)", "Intensive care unit (ICU)"
 
 spec_codes = ["AI", "CD", "CG", "END", "GE", "GER", "GS", "HEM", "IC", "ID", "IM", "ISAI", "ISCD", "ISCG", "ISEND", "ISGE", "ISGEN", "ISGER", "ISGS", "ISHEM", "ISIC", "ISID", "ISIM", "ISN", "ISNEP", "ISNIC", "ISOBG", "ISOMS", "ISON", "ISOR", "ISOTO", "ISP", "ISPCS", "ISPDGER", "ISPDGES", "ISPDPED", "ISPED", "ISPEDS", "ISPN", "ISPP", "ISPUL", "ISRHU", "ISRO", "ISTS", "ISU", "N", "NEP", "NIC", "OBG", "OMS", "ON", "OR", "OTO", "P", "PCS", "PDGEN", "PDGER", "PDGES", "PDPED", "PED", "PEDS", "PN", "PP", "PUL", "RHU", "RO", "TS", "U"]
 
-tables = ["admin_email", "admin_media", "admin_phone", "admin_shift", "administrative_staff", "admission_diagnosis", "bed", "bed_media", "department", "dept_shift", "discharge_diagnosis", "doc_spec", "doctor", "doctor_dept", "doctor_email", "doctor_media", "doctor_phone", "doctor_shift", "emergency_contact", "equipment", "equipment_media", "hosp_lab_test", "hosp_med_act", "hospitalisation", "insurance_carrier", "lab_test", "media", "medical_act", "nurse", "nurse_email", "nurse_media", "nurse_phone", "nurse_shift", "patient", "patient_allergy", "patient_email", "patient_insurance", "patient_phone", "patient_record", "prescribed_products", "prescription", "rating", "room", "room_media", "shift", "surgical_act", "surgical_act_doctor_assistants", "surgical_act_nurse_assistants", "triage"]
+tables = ["admin_email", "admin_media", "admin_phone", "admin_shift", "administrative_staff", "admission_diagnosis", "bed", "bed_media", "department", "dept_shift", "discharge_diagnosis", "doc_spec", "doctor", "doctor_dept", "doctor_email", "doctor_media", "doctor_phone", "doctor_shift", "emergency_contact", "equipment", "equipment_media", "hosp_lab_test", "hosp_med_act", "hospitalisation", "insurance_carrier", "lab_test", "media", "medical_act", "nurse", "nurse_email", "nurse_media", "nurse_phone", "nurse_shift", "patient", "patient_allergy", "patient_email", "patient_insurance", "patient_phone", "patient_record", "prescribed_products", "prescription", "rating", "room", "room_media", "shift", "surgical_act", "surgical_act_doctor_assistants", "surgical_act_nurse_assistants", "triage", "hosp_prescription"]
 
 
 patient_ids = []
@@ -503,7 +503,7 @@ def generate_hospitalisation(fdr, _dept=None):
 
     # Prescription
     if (random.random() < 0.6):
-        for _ in range(random.randint(1,3)):
+        for _ in range(random.randint(1,6)):
             prescr_id = generate_prescription(fdr, amka)
             assign_hosp_prescription(fdr, hosp_id, prescr_id)
 

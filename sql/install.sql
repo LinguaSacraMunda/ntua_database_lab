@@ -406,6 +406,7 @@ CREATE TABLE patient_record (
     hosp_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (hosp_id),
     INDEX idx_fk_patient_id (AMKA),
+    INDEX idx_fk_amka_hosp_id (AMKA, hosp_id)   -- Q06
     CONSTRAINT fk_patient_record_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_patient_record_hospitalisation_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -499,7 +499,7 @@ def generate_hospitalisation(fdr, _dept=None):
     carrier_id = random.randint(1, insurance_carrier_num)
 
     amka = assign_to_patient_record(fdr, hosp_id)
-    _triage_id = update_triage(fdr, admission_date, patient_triages[amka].pop());
+    _triage_id = update_triage(fdr, admission_date - timedelta(minutes=random.randint(15, 300)), patient_triages[amka].pop());
 
 
     fdr.write(f"INSERT INTO hospitalisation (hosp_id, admission_date, discharge_date, dept_name, bed_id, costing_id, carrier_id, triage_id) VALUES ('{hosp_id}', '{admission_date.date()}', {'NULL' if discharge_date is None else '\'' + str(discharge_date.date()) + '\''}, '{dept_name}', '{bed_id}', '{costing_id}', '{carrier_id}', '{_triage_id}');\n")

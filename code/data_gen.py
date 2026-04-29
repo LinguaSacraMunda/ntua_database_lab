@@ -424,6 +424,7 @@ def generate_med_act(fdr):
     cost = round(random.uniform(10, 9999), 2)
 
     if (type_t == 'Χειρουργική'):
+        start_datetime = random_date(_start=2025, _end=2026)
         room_id = random.choice(room_id_surg)
         is_surgical_act(fdr, med_act_id)
     else:

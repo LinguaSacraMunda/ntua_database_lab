@@ -50,10 +50,8 @@ CREATE TABLE patient (
     profession VARCHAR(255) DEFAULT NULL,
     citizenship VARCHAR(45) DEFAULT NULL,
 
-    triage_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (AMKA),
-    INDEX idx_patient_last_name (last_name),
-    CONSTRAINT fk_patient_triage FOREIGN KEY (triage_id) REFERENCES triage (triage_id) ON DELETE RESTRICT ON UPDATE CASCADE
+    INDEX idx_patient_last_name (last_name)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE patient_email (
@@ -68,6 +66,15 @@ CREATE TABLE patient_phone (
     phone_number VARCHAR(20) NOT NULL,
     PRIMARY KEY (AMKA, phone_number),
     CONSTRAINT fk_patient_phone FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE patient_triage (
+    AMKA VARCHAR(10) NOT NULL,
+    triage_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (triage_id),
+    INDEX idx_fk_patient_id (AMKA),
+    CONSTRAINT fk_patient_triage_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_patient_triage_triage_id FOREIGN KEY (triage_id) REFERENCES triage (triage_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -388,6 +395,7 @@ CREATE TABLE hospitalisation (
     bed_id INT UNSIGNED NOT NULL,
     costing_id INT UNSIGNED NOT NULL,
     carrier_id INT UNSIGNED NOT NULL,
+    triage_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (hosp_id),
     INDEX idx_admission_date (admission_date),  -- Q09
     INDEX idx_fk_carrier_id (carrier_id),       -- hosp covered by certain carrier
@@ -395,7 +403,8 @@ CREATE TABLE hospitalisation (
     CONSTRAINT fk_hosp_dept_id FOREIGN KEY (dept_name) REFERENCES department (dept_name) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_bed_id FOREIGN KEY (bed_id) REFERENCES bed (bed_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_carrier_id FOREIGN KEY (carrier_id) REFERENCES insurance_carrier (carrier_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_hosp_costing_id FOREIGN KEY (costing_id) REFERENCES costing (costing_id) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT fk_hosp_costing_id FOREIGN KEY (costing_id) REFERENCES costing (costing_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_hosp_triage_id FOREIGN KEY (triage_id) REFERENCES traiage (triage_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -403,11 +412,11 @@ CREATE TABLE hospitalisation (
 --
 
 CREATE TABLE patient_record (
-    AMKA VARCHAR(45) NOT NULL,
+    AMKA VARCHAR(10) NOT NULL,
     hosp_id INT UNSIGNED NOT NULL,
     PRIMARY KEY (hosp_id),
     INDEX idx_fk_patient_id (AMKA),
-    INDEX idx_fk_amka_hosp_id (AMKA, hosp_id)   -- Q06
+    INDEX idx_fk_amka_hosp_id (AMKA, hosp_id),   -- Q06
     CONSTRAINT fk_patient_record_patient_id FOREIGN KEY (AMKA) REFERENCES patient (AMKA) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_patient_record_hospitalisation_id FOREIGN KEY (hosp_id) REFERENCES hospitalisation (hosp_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

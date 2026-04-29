@@ -2,12 +2,14 @@ import random
 from datetime import datetime, timedelta
 from faker import Faker
 import csv
+from collections import defaultdict
+
 
 departments = ["Casualty", "Operating theatre (OT)", "Intensive care unit (ICU)", "Anesthesiology", "Cardiology", "ENT", "Geriatric", "Gastroenterology", "General surgery", "Gynaecology", "Haematology", "Pediatrics", "Neurology", "Oncology", "Opthalmology", "Orthopaedic", "Urology", "Psychiatry", "Inpatient Department (IPD)", "Outpatient Department (OPD)"]
 
 spec_codes = ["AI", "CD", "CG", "END", "GE", "GER", "GS", "HEM", "IC", "ID", "IM", "ISAI", "ISCD", "ISCG", "ISEND", "ISGE", "ISGEN", "ISGER", "ISGS", "ISHEM", "ISIC", "ISID", "ISIM", "ISN", "ISNEP", "ISNIC", "ISOBG", "ISOMS", "ISON", "ISOR", "ISOTO", "ISP", "ISPCS", "ISPDGER", "ISPDGES", "ISPDPED", "ISPED", "ISPEDS", "ISPN", "ISPP", "ISPUL", "ISRHU", "ISRO", "ISTS", "ISU", "N", "NEP", "NIC", "OBG", "OMS", "ON", "OR", "OTO", "P", "PCS", "PDGEN", "PDGER", "PDGES", "PDPED", "PED", "PEDS", "PN", "PP", "PUL", "RHU", "RO", "TS", "U"]
 
-tables = ["admin_email", "admin_media", "admin_phone", "admin_shift", "administrative_staff", "admission_diagnosis", "bed", "bed_media", "department", "dept_shift", "discharge_diagnosis", "doc_spec", "doctor", "doctor_dept", "doctor_email", "doctor_media", "doctor_phone", "doctor_shift", "emergency_contact", "equipment", "equipment_media", "hosp_lab_test", "hosp_med_act", "hospitalisation", "insurance_carrier", "lab_test", "media", "medical_act", "nurse", "nurse_email", "nurse_media", "nurse_phone", "nurse_shift", "patient", "patient_allergy", "patient_email", "patient_insurance", "patient_phone", "patient_record", "prescribed_products", "prescription", "rating", "room", "room_media", "shift", "surgical_act", "surgical_act_doctor_assistants", "surgical_act_nurse_assistants", "triage", "hosp_prescription"]
+tables = ["admin_email", "admin_media", "admin_phone", "admin_shift", "administrative_staff", "admission_diagnosis", "bed", "bed_media", "department", "dept_shift", "discharge_diagnosis", "doc_spec", "doctor", "doctor_dept", "doctor_email", "doctor_media", "doctor_phone", "doctor_shift", "emergency_contact", "equipment", "equipment_media", "hosp_lab_test", "hosp_med_act", "hospitalisation", "insurance_carrier", "lab_test", "media", "medical_act", "nurse", "nurse_email", "nurse_media", "nurse_phone", "nurse_shift", "patient", "patient_allergy", "patient_email", "patient_insurance", "patient_phone", "patient_record", "prescribed_products", "prescription", "rating", "room", "room_media", "shift", "surgical_act", "surgical_act_doctor_assistants", "surgical_act_nurse_assistants", "triage", "hosp_prescription", "patient_triage"]
 
 
 patient_ids = []
@@ -19,6 +21,8 @@ doctor_senior = []
 room_ids = []
 room_id_beds = []
 room_id_surg = []
+patient_triages = defaultdict(list)
+valid_keys = []
 bed_num = 0;
 cost_num = 702;
 insurance_carrier_num = 10;
@@ -70,7 +74,7 @@ def generate_amka(dob):
 
 def generate_triage(fdr):
     global triage_id;
-    triage_id += 0;
+    triage_id += 1;
     level = random.randint(1, 5)
     symptoms = fake.text(max_nb_chars=200)
     fdr.write(f"INSERT INTO triage (triage_id, level, symptoms) VALUES ('{triage_id}', '{level}', '{symptoms}');\n")
@@ -130,7 +134,7 @@ def get_pharm_prod():
 # ========================================================================
 #                               Patient Gen 
 # ========================================================================
-def generate_patient(fdr, triage_id):
+def generate_patient(fdr):
     dob = random_date(1940, 2025);
     amka = generate_amka(dob);
     patient_ids.append(amka)
@@ -159,7 +163,12 @@ def generate_patient(fdr, triage_id):
     profession = fake.job()
     citizenship = fake.country()
 
-    fdr.write(f"INSERT INTO patient (AMKA, first_name, middle_name, last_name, patronym, date_of_birth, sex, weight, height, street_name, street_number, postal_code, area, municipality, prefecture,  profession, citizenship, triage_id) VALUES ('{amka}','{first_name}',{'NULL' if middle_name is None else '\'' + str(middle_name) + '\''},'{last_name}', '{patronym}', '{dob.date()}','{sex}','{weight}','{height}','{street_name}','{street_number}','{postal_code}','{area}','{municipality}','{prefecture}','{profession}','{citizenship}','{triage_id}');\n")
+    fdr.write(f"INSERT INTO patient (AMKA, first_name, middle_name, last_name, patronym, date_of_birth, sex, weight, height, street_name, street_number, postal_code, area, municipality, prefecture,  profession, citizenship) VALUES ('{amka}','{first_name}',{'NULL' if middle_name is None else '\'' + str(middle_name) + '\''},'{last_name}', '{patronym}', '{dob.date()}','{sex}','{weight}','{height}','{street_name}','{street_number}','{postal_code}','{area}','{municipality}','{prefecture}','{profession}','{citizenship}');\n")
+
+    for _ in range(random.randint(5,10)):
+            _triage_id = generate_triage(fdr)
+            fdr.write(f"INSERT INTO patient_triage (AMKA, triage_id) VALUES ('{amka}', '{_triage_id}');\n")
+            patient_triages[amka].append(_triage_id);
 
     return amka
 
@@ -419,7 +428,6 @@ def generate_med_act(fdr):
     type_t = random.choice(['Χειρουργική', 'Διαγνωστική', 'Θεραπευτική'])
     med_proc_id = random.randint(1, 6608)
     start_datetime = random_date(_start=2020, _end=2026)
-    end_datetime = start_datetime + timedelta(days=random.randint(1, 100), hours=random.randint(1,10))
     result = fake.text(max_nb_chars=200)
     cost = round(random.uniform(10, 9999), 2)
 
@@ -429,6 +437,8 @@ def generate_med_act(fdr):
         is_surgical_act(fdr, med_act_id)
     else:
         room_id = random.choice(room_ids)
+
+    end_datetime = start_datetime + timedelta(days=random.randint(1, 100), hours=random.randint(1,10))
 
     fdr.write(f"INSERT INTO medical_act (med_act_id, type, med_proc_id, start_datetime, end_datetime, room_id, cost) VALUES ('{med_act_id}', '{type_t}', '{med_proc_id}', '{start_datetime}', '{end_datetime}', '{room_id}', '{cost}');\n")
     return med_act_id
@@ -456,7 +466,8 @@ def generate_rating(fdr,_hosp_id, amka):
 # ========================================================================
 
 def assign_to_patient_record(fdr, _hosp_id, _amka=None):
-    amka = _amka if _amka != None else random.choice(patient_ids)
+    valid_keys = [k for k, v in patient_triages.items() if v]  # non-empty lists
+    amka = _amka if _amka != None else random.choice(valid_keys)
     fdr.write(f"INSERT INTO patient_record (AMKA, hosp_id) VALUES ('{amka}', '{_hosp_id}');\n")
     return amka;
 
@@ -467,6 +478,10 @@ def generate_admission_diag(fdr, _hosp_id):
 def generate_discharge_diag(fdr, _hosp_id):
     diag_id = get_icd10()
     fdr.write(f"INSERT INTO discharge_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
+
+def update_triage(fdr, _arrival_time, _triage_id):
+    fdr.write(f"UPDATE triage SET status = TRUE, arrival_time = '{_arrival_time}' WHERE triage_id = '{_triage_id}';\n")
+    return _triage_id;
 
 def generate_hospitalisation(fdr, _dept=None):
     global hosp_id;
@@ -483,7 +498,11 @@ def generate_hospitalisation(fdr, _dept=None):
     costing_id = random.randint(1, cost_num)
     carrier_id = random.randint(1, insurance_carrier_num)
 
-    fdr.write(f"INSERT INTO hospitalisation (hosp_id, admission_date, discharge_date, dept_name, bed_id, costing_id, carrier_id) VALUES ('{hosp_id}', '{admission_date.date()}', {'NULL' if discharge_date is None else '\'' + str(discharge_date.date()) + '\''}, '{dept_name}', '{bed_id}', '{costing_id}', '{carrier_id}');\n")
+    amka = assign_to_patient_record(fdr, hosp_id)
+    _triage_id = update_triage(fdr, admission_date, patient_triages[amka].pop());
+
+
+    fdr.write(f"INSERT INTO hospitalisation (hosp_id, admission_date, discharge_date, dept_name, bed_id, costing_id, carrier_id, triage_id) VALUES ('{hosp_id}', '{admission_date.date()}', {'NULL' if discharge_date is None else '\'' + str(discharge_date.date()) + '\''}, '{dept_name}', '{bed_id}', '{costing_id}', '{carrier_id}', '{_triage_id}');\n")
 
     # Lab test
     if (random.random() < 0.6):
@@ -498,9 +517,9 @@ def generate_hospitalisation(fdr, _dept=None):
     if (_dept != None):
         return hosp_id, discharge_date
 
-    amka = assign_to_patient_record(fdr, hosp_id)
     if (discharge_date != None):
         generate_rating(fdr, hosp_id, amka)
+    
 
     # Prescription
     if (random.random() < 0.6):
@@ -606,8 +625,7 @@ def main():
         clear_tables(fdr)
 
         for _ in range(patient_num):
-            triage_id = generate_triage(fdr)
-            amka = generate_patient(fdr, triage_id)
+            amka = generate_patient(fdr)
             generate_contacts(fdr, "patient", amka)
 
         for _ in range(nurse_num):

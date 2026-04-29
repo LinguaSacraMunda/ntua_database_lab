@@ -76,6 +76,11 @@ WITH
                 AND s.status = 1
             )
     )
-SELECT *
+SELECT 
+    dept_name,
+    day,
+    role,
+    type,
+    COUNT(*)
 FROM staff_on_call
-ORDER BY dept_name, day, role, type, AMKA;
+GROUP BY dept_name, day, role, type;

@@ -20,6 +20,8 @@
 \usepackage{listings}
 \usepackage{subcaption}
 \usepackage{caption}
+\usepackage{biblatex}
+\addbibresource{references.bib}
 
 \newcommand{\eng}[1]{\foreignlanguage{english}{#1}}
 \newcommand{\langeng}{\selectlanguage{english}}
@@ -251,17 +253,7 @@
 
 Θεωρούμε ότι η πρόσθετη ημερήσια χρέωση, στην περίπτωση που η παραμονή ενός ασθενούς υπερβεί τον αναμενόμενο χρόνο, ανέρχεται στο 10\% του βασικού κόστους. 
 
-\section*{\ul{Πηγές}}
-\eng{https://www.gs1.org/industries/healthcare/standards}
-
-\eng{https://stackoverflow.com/questions/7595714/how-to-write-a-trigger-to-abort-delete-in-mysql}
-
-\eng{https://stackoverflow.com/questions/65661279/how-do-i-enforce-a-total-participation-constraint-on-1n-relationship-in-a-relat}
-
-\eng{https://stackoverflow.com/questions/7296846/how-to-implement-one-to-one-one-to-many-and-many-to-many-relationships-while-de?rq=1}
-
-
-\eng{https://stackoverflow.com/questions/51278467/mysql-collation-utf8mb4-unicode-ci-vs-utf8mb4-default-collation}
-
-\eng{https://dev.mysql.com/doc/}
+\langeng
+\nocite{*}
+\printbibliography
 \end{document}

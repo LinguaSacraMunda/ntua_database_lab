@@ -21,6 +21,7 @@ CREATE TABLE triage (
     level TINYINT(1) UNSIGNED NOT NULL CHECK (1 <= level AND level <= 5),
     arrival_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     symptoms TEXT NOT NULL,
+    status BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (triage_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1411,6 +1412,7 @@ DELIMITER ;
 CREATE VIEW vw_triage_queue AS
 SELECT *
 FROM triage
+WHERE status = FALSE
 ORDER BY level DESC, arrival_time ASC;
 
 --

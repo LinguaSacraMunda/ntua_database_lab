@@ -1,13 +1,27 @@
-WITH codes_yearly AS (
+WITH hlpr AS (
     SELECT
         YEAR(h.admission_date) AS year,
-        d.diag_id,
+        ad.diag_id,
         COUNT(*) AS cnt
     FROM hospitalisation h
     INNER JOIN admission_diagnosis ad ON ad.hosp_id = h.hosp_id
+    GROUP BY year, ad.diag_id
+
+    UNION ALL
+
+    SELECT
+        YEAR(h.admission_date) AS year,
+        dd.diag_id,
+        COUNT(*) AS cnt
+    FROM hospitalisation h
     INNER JOIN discharge_diagnosis dd ON dd.hosp_id = h.hosp_id
-    INNER JOIN diagnosis d ON d.diag_id = ad.diag_id OR d.diag_id = dd.diag_id
-    GROUP BY year, d.diag_id)
+    GROUP BY year, dd.diag_id
+    ),
+    codes_yearly AS (
+    SELECT year, diag_id, SUM(cnt) as cnt
+    FROM hlpr
+    GROUP BY year, diag_id
+    )
 SELECT A.year, B.year AS prev_year, A.diag_id, A.cnt AS count
 FROM codes_yearly A
 INNER JOIN codes_yearly B 

@@ -250,8 +250,49 @@
 \end{lstlisting}
 \langgrc
 
-
 Θεωρούμε ότι η πρόσθετη ημερήσια χρέωση, στην περίπτωση που η παραμονή ενός ασθενούς υπερβεί τον αναμενόμενο χρόνο, ανέρχεται στο 10\% του βασικού κόστους. 
+
+\section*{\ul{Ερωτήματα}}
+\subsection*{\eng{\ul{Q11}}}
+Σημειώνουμε ότι, δεδομένου να μη λάβουμε κενό αποτέλεσμα, κάνουμε τις ακόλουθες αλλαγές στα δεδομένα που δίδονται από το \eng{\texttt{code/insert.sql}}:
+
+\langeng
+\begin{lstlisting}
+UPDATE surgical_act
+SET primary_doc_id = '0309563392'
+WHERE primary_doc_id IN ('0509973114', '2312517384', '2103891566', '2402660476');
+\end{lstlisting}
+\langgrc
+
+\subsection*{\eng{\ul{Q14}}}
+Όμοια με το ερώτημα \eng{Q11}, κάνουμε τις ακόλουθες αλλαγές στα δεδομένα που δίδονται από το \eng{\texttt{code/insert.sql}}:
+
+\langeng
+\begin{lstlisting}
+UPDATE admission_diagnosis ad
+JOIN hospitalisation h ON h.hosp_id = ad.hosp_id
+SET ad.diag_id = 'A01.4'
+WHERE YEAR(h.admission_date) = 2021
+LIMIT 10;
+
+UPDATE admission_diagnosis ad
+JOIN hospitalisation h ON h.hosp_id = ad.hosp_id
+SET ad.diag_id = 'A01.4'
+WHERE YEAR(h.admission_date) = 2022
+LIMIT 10;
+
+UPDATE admission_diagnosis ad
+JOIN hospitalisation h ON h.hosp_id = ad.hosp_id
+SET ad.diag_id = 'V85.9'
+WHERE YEAR(h.admission_date) = 2023
+LIMIT 10;
+
+UPDATE admission_diagnosis ad
+JOIN hospitalisation h ON h.hosp_id = ad.hosp_id
+SET ad.diag_id = 'V85.9'
+WHERE YEAR(h.admission_date) = 2024
+LIMIT 10;
+\end{lstlisting}
 
 \langeng
 \nocite{*}

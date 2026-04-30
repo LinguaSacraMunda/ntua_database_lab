@@ -9,7 +9,7 @@ WITH
         GROUP BY days
         HAVING count(*) > 1
     )
-SELECT mdi.days, pr.AMKA AS patient_AMKA
+SELECT mdi.days, pr.AMKA AS patient_AMKA, h.hosp_id
 FROM hospitalisation h
 INNER JOIN patient_record pr ON h.hosp_id = pr.hosp_id
 INNER JOIN mult_day_instances mdi 

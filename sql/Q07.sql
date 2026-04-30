@@ -1,6 +1,6 @@
 SELECT hlpr1.act_sub_id, patients_allergic_to_sub, products_containing_sub
 FROM (
-SELECT acts.act_sub_id, count(*) AS patients_allergic_to_sub
+SELECT acts.act_sub_id, count(*) AS num_of_patients_allergic_to_sub
 FROM
     active_substance acts
     INNER JOIN patient_allergy pa ON acts.act_sub_id = pa.act_sub_id

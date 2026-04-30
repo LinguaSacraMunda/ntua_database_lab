@@ -77,7 +77,9 @@ def generate_triage(fdr):
     triage_id += 1;
     level = random.randint(1, 5)
     symptoms = fake.text(max_nb_chars=200)
-    fdr.write(f"INSERT INTO triage (triage_id, level, symptoms) VALUES ('{triage_id}', '{level}', '{symptoms}');\n")
+    arrival_time = random_date(_start=2020, _end=2026);
+    admission_time = arrival_time + timedelta(minutes=random.randint(10, 300)) if (random.random() < 0.9) else None;
+    fdr.write(f"INSERT INTO triage (triage_id, level, arrival_time, admission_time, symptoms) VALUES ('{triage_id}', '{level}', '{arrival_time}', {'NULL' if admission_time is None else '\'' + str(admission_time) + '\''}, '{symptoms}');\n")
 
     return triage_id
 
@@ -165,7 +167,7 @@ def generate_patient(fdr):
 
     fdr.write(f"INSERT INTO patient (AMKA, first_name, middle_name, last_name, patronym, date_of_birth, sex, weight, height, street_name, street_number, postal_code, area, municipality, prefecture,  profession, citizenship) VALUES ('{amka}','{first_name}',{'NULL' if middle_name is None else '\'' + str(middle_name) + '\''},'{last_name}', '{patronym}', '{dob.date()}','{sex}','{weight}','{height}','{street_name}','{street_number}','{postal_code}','{area}','{municipality}','{prefecture}','{profession}','{citizenship}');\n")
 
-    for _ in range(random.randint(5,10)):
+    for _ in range(random.randint(1,5)):
             _triage_id = generate_triage(fdr)
             fdr.write(f"INSERT INTO patient_triage (AMKA, triage_id) VALUES ('{amka}', '{_triage_id}');\n")
             patient_triages[amka].append(_triage_id);
@@ -480,7 +482,7 @@ def generate_discharge_diag(fdr, _hosp_id):
     fdr.write(f"INSERT INTO discharge_diagnosis (hosp_id, diag_id) VALUES ('{_hosp_id}', '{diag_id}');\n")
 
 def update_triage(fdr, _arrival_time, _triage_id):
-    fdr.write(f"UPDATE triage SET status = TRUE, arrival_time = '{_arrival_time}' WHERE triage_id = '{_triage_id}';\n")
+    fdr.write(f"UPDATE triage SET arrival_time = '{_arrival_time}' WHERE triage_id = '{_triage_id}';\n")
     return _triage_id;
 
 def generate_hospitalisation(fdr, _dept=None):

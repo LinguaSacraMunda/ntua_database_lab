@@ -20,8 +20,8 @@ CREATE TABLE triage (
     triage_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     level TINYINT(1) UNSIGNED NOT NULL CHECK (1 <= level AND level <= 5),
     arrival_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    admission_time TIMESTAMP DEFAULT NULL,
     symptoms TEXT NOT NULL,
-    status BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (triage_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -404,7 +404,7 @@ CREATE TABLE hospitalisation (
     CONSTRAINT fk_hosp_bed_id FOREIGN KEY (bed_id) REFERENCES bed (bed_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_carrier_id FOREIGN KEY (carrier_id) REFERENCES insurance_carrier (carrier_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_hosp_costing_id FOREIGN KEY (costing_id) REFERENCES costing (costing_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_hosp_triage_id FOREIGN KEY (triage_id) REFERENCES traiage (triage_id) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT fk_hosp_triage_id FOREIGN KEY (triage_id) REFERENCES triage (triage_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -846,6 +846,7 @@ CREATE TRIGGER upd_doc_supervisor BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
         END IF;
     END IF;
 END;;
+
 -- =========================================================== 
 --                      Hospitalisation 
 -- =========================================================== 
@@ -858,6 +859,15 @@ CREATE TRIGGER upd_hospitalisation_discharge_date BEFORE UPDATE ON hospitalisati
     END IF;
 END;;
 
+CREATE TRIGGER ins_hospitalisation_triage AFTER INSERT ON hospitalisation FOR EACH ROW BEGIN
+    UPDATE triage
+    SET admission_time = NEW.admission_date
+    WHERE triage_id = NEW.triage_id;
+END;;
+
+-- =========================================================== 
+--                         Shifts
+-- =========================================================== 
 
 
 --
@@ -1421,7 +1431,7 @@ DELIMITER ;
 CREATE VIEW vw_triage_queue AS
 SELECT *
 FROM triage
-WHERE status = FALSE
+WHERE admission_time IS NOT NULL
 ORDER BY level DESC, arrival_time ASC;
 
 --

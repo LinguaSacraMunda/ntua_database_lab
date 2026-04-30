@@ -4,7 +4,12 @@ SELECT
     calculate_hospit_cost(h.hosp_id) AS cost, 
     ad.diag_id as admission_diagnosis, 
     dd.diag_id as discharge_diagnosis, 
-    (r.medical_care + r.nursing_care + r.cleanliness + r.food + r.experience) / 5 AS avg_rating
+    ROUND(
+        (r.medical_care + r.nursing_care + r.cleanliness + r.food + r.experience) / 5,
+        2) AS avg_rating,
+    ROUND(
+        AVG((r.medical_care + r.nursing_care + r.cleanliness + r.food + r.experience) / 5) OVER (PARTITION BY pr.AMKA),
+        2) AS total_avg_rating
 FROM patient_record pr
 INNER JOIN hospitalisation h ON h.hosp_id = pr.hosp_id
 INNER JOIN admission_diagnosis ad ON h.hosp_id = ad.hosp_id

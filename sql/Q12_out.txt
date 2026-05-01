@@ -1,0 +1,63 @@
++-----------------+------------+--------+-------------------------------------+----------+
+| dept_name       | day        | role   | type                                | COUNT(*) |
++-----------------+------------+--------+-------------------------------------+----------+
+| General surgery | 2026-04-28 | Admin  | Ανθρώπινο Δυναμικό                  |        3 |
+| General surgery | 2026-04-28 | Admin  | Γραμματεία                          |        1 |
+| General surgery | 2026-04-28 | Admin  | Λογιστήριο                          |        1 |
+| General surgery | 2026-04-28 | Admin  | Τεχνική Υποστήριξη                  |        2 |
+| General surgery | 2026-04-28 | Doctor | GS                                  |        1 |
+| General surgery | 2026-04-28 | Doctor | ISCG                                |        1 |
+| General surgery | 2026-04-28 | Doctor | ISGS                                |        1 |
+| General surgery | 2026-04-28 | Doctor | ISHEM                               |        1 |
+| General surgery | 2026-04-28 | Doctor | ISOTO                               |        1 |
+| General surgery | 2026-04-28 | Doctor | ISPDGES                             |        1 |
+| General surgery | 2026-04-28 | Doctor | ISPEDS                              |        1 |
+| General surgery | 2026-04-28 | Doctor | ISPN                                |        1 |
+| General surgery | 2026-04-28 | Doctor | ISPP                                |        1 |
+| General surgery | 2026-04-28 | Doctor | OR                                  |        1 |
+| General surgery | 2026-04-28 | Doctor | OTO                                 |        1 |
+| General surgery | 2026-04-28 | Doctor | P                                   |        1 |
+| General surgery | 2026-04-28 | Doctor | PCS                                 |        1 |
+| General surgery | 2026-04-28 | Doctor | PDPED                               |        1 |
+| General surgery | 2026-04-28 | Nurse  | Βοηθός Νοσηλευτή                    |        3 |
+| General surgery | 2026-04-28 | Nurse  | Νοσηλευτής                          |       12 |
+| General surgery | 2026-04-28 | Nurse  | Προϊστάμενος                        |        3 |
+| Opthalmology    | 2026-04-27 | Admin  | Ανθρώπινο Δυναμικό                  |        5 |
+| Opthalmology    | 2026-04-27 | Admin  | Γραμματεία                          |        2 |
+| Opthalmology    | 2026-04-27 | Admin  | Λογιστήριο                          |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISEND                               |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISGS                                |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISID                                |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISIM                                |        2 |
+| Opthalmology    | 2026-04-27 | Doctor | ISN                                 |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISOR                                |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISP                                 |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISPCS                               |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISPDGER                             |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISPEDS                              |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISPP                                |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | ISRO                                |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | N                                   |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | PCS                                 |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | PDGEN                               |        1 |
+| Opthalmology    | 2026-04-27 | Doctor | PDPED                               |        2 |
+| Opthalmology    | 2026-04-27 | Doctor | RO                                  |        1 |
+| Opthalmology    | 2026-04-27 | Nurse  | Βοηθός Νοσηλευτή                    |        7 |
+| Opthalmology    | 2026-04-27 | Nurse  | Νοσηλευτής                          |        4 |
+| Opthalmology    | 2026-04-27 | Nurse  | Προϊστάμενος                        |        5 |
+| Orthopaedic     | 2026-04-26 | Admin  | Ανθρώπινο Δυναμικό                  |        2 |
+| Orthopaedic     | 2026-04-26 | Admin  | Λογιστήριο                          |        2 |
+| Orthopaedic     | 2026-04-26 | Doctor | IC                                  |        1 |
+| Orthopaedic     | 2026-04-26 | Doctor | ID                                  |        1 |
+| Orthopaedic     | 2026-04-26 | Doctor | ISGE                                |        1 |
+| Orthopaedic     | 2026-04-26 | Doctor | ISGEN                               |        1 |
+| Orthopaedic     | 2026-04-26 | Doctor | ISN                                 |        1 |
+| Orthopaedic     | 2026-04-26 | Doctor | ISPEDS                              |        2 |
+| Orthopaedic     | 2026-04-26 | Doctor | ISRO                                |        1 |
+| Orthopaedic     | 2026-04-26 | Doctor | PDPED                               |        1 |
+| Orthopaedic     | 2026-04-26 | Doctor | PEDS                                |        1 |
+| Orthopaedic     | 2026-04-26 | Doctor | RHU                                 |        1 |
+| Orthopaedic     | 2026-04-26 | Nurse  | Βοηθός Νοσηλευτή                    |        7 |
+| Orthopaedic     | 2026-04-26 | Nurse  | Νοσηλευτής                          |        2 |
+| Orthopaedic     | 2026-04-26 | Nurse  | Προϊστάμενος                        |        4 |
++-----------------+------------+--------+-------------------------------------+----------+

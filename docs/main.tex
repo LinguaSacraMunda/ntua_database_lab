@@ -7,11 +7,11 @@
 \usepackage{graphicx}
 \graphicspath{{media/}}
 \usepackage[
-  a4paper,
-  top=2.5cm,
-  bottom=2.5cm,
-  left=2.5cm,
-  right=2.5cm
+a4paper,
+top=2.5cm,
+bottom=2.5cm,
+left=2.5cm,
+right=2.5cm
 ]{geometry}
 \usepackage{siunitx}
 \usepackage{xcolor}
@@ -22,13 +22,21 @@
 \usepackage{caption}
 \usepackage{biblatex}
 \addbibresource{references.bib}
+\usepackage{hyperref,xurl}
+\usepackage{tabularx}
+\usepackage{booktabs}
 
 \newcommand{\eng}[1]{\foreignlanguage{english}{#1}}
 \newcommand{\langeng}{\selectlanguage{english}}
 \newcommand{\langgrc}{\selectlanguage{greek}}
 
+\urldef{\urldbeaver}\url{https://dbeaver.io/}
+\urldef{\urlcodes}\url{https://www.moh.gov.gr/articles/health/domes-kai-draseis-gia-thn-ygeia/kwdikopoihseis/kleista-enopoihmena-noshlia/713-kwdikopoihseis?fdl=193}
+\urldef{\urlworkbench}\url{https://dev.mysql.com/doc/workbench/en/workbench-faq.html#faq-workbench-increase-performance}
+\urldef{\urlgesy}\url{ https://www.gesy.org.cy/el-gr/annualreport/042026-specialty-restrictions-ahp-mp.xlsx}
+
 \title{Βάσεις Δεδομένων\\[1.2ex]
-        \Large ΥΠΌΤΙΤΛΟΣ}
+\Large Εξαμηνιαία Εργασία Έτους 2025-2026}
 \date{\today}
 \author{Ίωνας Τσακίρης 03123077\footnote{\eng{el23077@mail.ntua.gr}}}
 
@@ -36,22 +44,22 @@
 % Definition of \maketitle
 \makeatletter         
 \def\@maketitle{
-\raggedright
-\mbox{}\hfill
-\begin{minipage}{2cm}
-    \includegraphics[width = 20mm,valign=b]{pyrforos}
-\end{minipage}
-\hfill
-\begin{minipage}{12cm}
-    {\Large \bfseries Εθνικό Μετσόβιο Πολυτεχνείο}\\ 
-    {\Large Σχολή Ηλεκτρολόγων Μηχανικών και Μηχανικών\\Υπολογιστών}
-\end{minipage}
+    \raggedright
+    \mbox{}\hfill
+    \begin{minipage}{2cm}
+        \includegraphics[width = 20mm,valign=b]{pyrforos}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{12cm}
+        {\Large \bfseries Εθνικό Μετσόβιο Πολυτεχνείο}\\ 
+        {\Large Σχολή Ηλεκτρολόγων Μηχανικών και Μηχανικών\\Υπολογιστών}
+    \end{minipage}
 
-\\[16ex]
-\begin{center}
-{\Huge \bfseries \@title }\\[4ex] 
-{\Large  \@author}\\[4ex] 
-\@date\\[8ex]
+    \\[16ex]
+    \begin{center}
+        {\Huge \bfseries \@title }\\[4ex] 
+        {\Large  \@author}\\[4ex] 
+        \@date\\[8ex]
 \end{center}}
 \makeatother
 
@@ -63,15 +71,6 @@
 \newpage
 \pagenumbering{arabic}
 
-\section{\eng{Relational Diagram}}
-
-\begin{figure}[h]
-    \includegraphics[width=0.9\linewidth]{../diagrams/relational.pdf}
-    \caption{Σχεσιακό διάγραμμα βάσης}
-    \label{fig:rel}
-\end{figure}
-
-\clearpage 
 
 \section{\eng{ERD}}
 
@@ -86,9 +85,13 @@
 \begin{itemize}
 \tightlist
 \item
-  διοικητικό προσωπικό \textbf{είναι} προσωπικό
+    ασθενής \textbf{είναι} άτομο
 \item
-  νοσηλευτής \textbf{είναι} προσωπικό
+    προσωπικό \textbf{είναι} άτομο
+\item
+    διοικητικό προσωπικό \textbf{είναι} προσωπικό
+\item
+    νοσηλευτής \textbf{είναι} προσωπικό
 \item
   γιατρός \textbf{είναι} προσωπικό
 \item
@@ -96,18 +99,12 @@
 \item
   γιατρός \textbf{μπορεί να έχει έναν} επόπτη
 \item
-    \textbf{απαγορεύεται η κυκλική αλυσίδα εποπτείας}
-\item
-  \textbf{κάθε} ειδικευόμενος \textbf{έχει έναν} επόπτη
-\item
-  διευθυντές \textbf{δεν έχουν} επόπτη
-\item
-  γιατρός \textbf{μπορεί να ανήκει σε \textgreater= 2} τμήματα
+  γιατρός \textbf{ανήκει σε \textgreater= 1} τμήματα
 \item
     γιατρός \textbf{έχει \textgreater= 1} ειδικότητες
 
 \item
-  \textbf{κάθε} νοσηλευτής \textbf{έχει} βαθμίδα \textbf{και ανήκει σε
+  \textbf{κάθε} νοσηλευτής \textbf{ανήκει σε
   ένα} τμήμα
 \item
   \textbf{κάθε} τμήμα \textbf{έχει έναν} διευθυντή (γιατρό)
@@ -116,9 +113,21 @@
 \item
   \textbf{κάθε} τμήμα \textbf{έχει} κλίνες
 \item
+  \textbf{κάθε} τμήμα \textbf{μπορεί να έχει} εξοπλισμό 
+\item
   \textbf{κάθε} κλίνη \textbf{βρίσκεται σε} δωμάτιο
 \item
-  \textbf{κάθε} ασθενής \textbf{έχει} ασφαλιστικό φορέα
+  \textbf{κάθε} εξοπλισμός \textbf{βρίσκεται σε} δωμάτιο
+\item
+    \textbf{κάθε} τμήμα \textbf{έχει} βάρδιες
+\item
+    \textbf{κάθε} βάρδια \textbf{απασχολεί έναν αριθμό} γιατρών
+\item
+    \textbf{κάθε} βάρδια \textbf{απασχολεί έναν αριθμό} νοσηλευτών 
+\item
+    \textbf{κάθε} βάρδια \textbf{απασχολεί έναν αριθμό} διοικητικού προσωπικού
+\item
+  \textbf{κάθε} ασθενής \textbf{έχει \textgreater=1} ασφαλιστικό φορέα
 \item
     \textbf{κάθε} ασθενής \textbf{έχει \textgreater=1} καταθέσεις διαλογής (στο ιστορικό
   του)
@@ -126,96 +135,144 @@
   ασθενής \textbf{μπορεί να έχει \textgreater=1} νοσηλείες (στο ιστορικό
   του)
 \item
-  \textbf{κάθε} βάρδια \textbf{κάθε} τμήματος \textbf{έχει \textgreater=
-  3} γιατρούς \textbf{και \textgreater=6} νοσηλευτές \textbf{και
-  \textgreater= 2} διοικητικούς υπαλλήλους
-\item
-  \textbf{αν σε} βάρδια \textbf{υπάρχει} ειδικευόμενος γιατρός
-  \textbf{τότε πρέπει να υπάρχει \textgreater= 1} γιατρός βαθμίδας
-  Επιμελητής Α' \textbf{ή \textgreater= 1} διευθυντής
-\item
   ασθενής \textbf{που χρειάζεται} νοσηλεία \textbf{εισάγεται σε} τμήμα
   \textbf{με} κλίνη
 \item
-    \textbf{κάθε} vοσηλεία \textbf{έχει} κοστολόγηση
+    \textbf{κάθε} νοσηλεία \textbf{έχει} κοστολόγηση
+\item
+    \textbf{κάθε} νοσηλεία \textbf{έχει} διάγνωση εισαγωγής
+\item
+    νοσηλεία \textbf{μπορεί να έχει} διάγνωση εξόδου
+\item
+    νοσηλεία \textbf{μπορεί να έχει} αξιολόγηση \textbf{από} ασθενή 
 \item
   νοσηλεία \textbf{μπορεί να συνδέεται με \textgreater= 1}
-  εργαστηριακές\_εξετάσεις
+  φαρμακευτικές συνταγές
 \item
   νοσηλεία \textbf{μπορεί να συνδέεται με \textgreater= 1}
-  ιατρικές\_πράξεις
+  εργαστηριακές εξετάσεις
 \item
   νοσηλεία \textbf{μπορεί να συνδέεται με \textgreater= 1}
-  ιατρικές\_επεμβάσεις
+  ιατρικές επεμβάσεις
 \item
-  \textbf{κάθε} ιατρική\_επέμβαση \textbf{έχει} κύριο χειρούργο
+    εργαστηριακές εξετάσεις \textbf{είναι} ιατρικές πράξεις
+\item
+    ιατρικές επεμβάσεις \textbf{είναι} ιατρικές πράξεις
+\item
+    χειρουργικές επεμβάσεις \textbf{είναι} ιατρικές επεμβάσεις
+\item
+  \textbf{κάθε} χειρουργική επέμβαση \textbf{έχει} κύριο χειρούργο
   \textbf{και \textgreater= 0} βοηθούς (προσωπικό)
 \item
-    \textbf{κάθε} φαρμακευτική\_αγωγή \textbf{εκδίδεται από} γιατρό \textbf{για} ασθενή
+    \textbf{κάθε} φαρμακευτική συνταγή \textbf{εκδίδεται από} γιατρό \textbf{για} ασθενή
+\item 
+    \textbf{κάθε} φαρμακευτική συνταγή \textbf{εμπεριέχει \textgreater= 1} φαρμακευτικές αγωγές
 \item
-  (γιατρός, ασθενής, φάρμακο, ημερομηνίας έναρξης) \textbf{είναι
-  \eng{superkey}}
+    \textbf{κάθε} φαρμακευτική αγωγή \textbf{αφορά ένα} φαρμακευτικό προϊόν
+\item
+    \textbf{κάθε} φαρμακευτικό προϊόν \textbf{εμπεριέχει \textgreater= 1} δραστικές ουσίες
+\item
+    ασθενείς \textbf{μπορεί να έχουν} καταγεγραμμένες αλλεργίες \textbf{σε} δραστικές ουσίες
+\item
+    προσωπικό \textbf{μπορεί να συνδέεται με} φωτογραφικό υλικό
+\item
+    δωμάτια \textbf{μπορεί να συνδέονται με} φωτογραφικό υλικό
+\item
+    κλίνες \textbf{μπορεί να συνδέονται με} φωτογραφικό υλικό
+\item
+    εξοπλισμός \textbf{μπορεί να συνδέεται με} φωτογραφικό υλικό
 \end{itemize}
 
+Σημειώνουμε ότι γιά την υλοποίηση των ασθενών και του προσωπικού έχουμε χρησιμοποιήσει ένα σχήμα κληρονομικότητας, όπου κάθε ασθενής και κάθε μέλος προσωπικού είναι άτομο και έχει ορισμένα χαρακτηριστικά. Ακόμη, διαχωρίζουμε τα είδη προσωπικού σε ιατρούς, νοσηλευτές, και διοικητικό προσωπικό. Ακολουθούμε, δηλαδή, μια σχεδίαση από πάνω προς τα κάτω.
+
+\clearpage
+
+\section{\eng{Relational Diagram}}
+Το σχεσιακό διάγραμμα της βάσης δημιουργήθηκε με τη βοήθεια του \eng{DBeaver\footnote{\urldbeaver}}.
+\begin{figure}[h]
+    \includegraphics[width=0.9\linewidth]{../diagrams/relational.pdf}
+    \caption{Σχεσιακό διάγραμμα βάσης}
+    \label{fig:rel}
+\end{figure}
+
+\clearpage 
+
+\section{Χαρακτηριστικά Σχήματος}
 \subsection{\eng{Constraints}}
 
 \begin{itemize}
 \tightlist
 \item
-  βαρδιες χωρίζονται σε πρωινές, απογευματινές και νυχτερινές
+    \textbf{Απαγορεύεται η κυκλική αλυσίδα εποπτείας}.
 \item
-  μέγιστο πλήθος βαρδιών:
+    \textbf{Κάθε} ειδικευόμενος \textbf{έχει έναν} επόπτη.
+\item
+    Διευθυντές \textbf{δεν έχουν} επόπτη.
+\item
+    Βαρδιες \textbf{χωρίζονται σε} πρωινές, απογευματινές και νυχτερινές.
+\item
+    \textbf{Κάθε} βάρδια \textbf{κάθε} τμήματος \textbf{έχει \textgreater= 3} γιατρούς \textbf{και \textgreater=6} νοσηλευτές \textbf{και \textgreater= 2} διοικητικούς υπαλλήλους.
+\item
+    \textbf{Αν σε} βάρδια \textbf{υπάρχει} ειδικευόμενος γιατρός \textbf{τότε πρέπει να υπάρχει \textgreater= 1} γιατρός βαθμίδας Επιμελητής Α' \textbf{ή \textgreater= 1} διευθυντής.
+\item
+    \textbf{Μέγιστο πλήθος βαρδιών:} 
 
   \begin{itemize}
   \tightlist
   \item
-    γιατρός: 15
+    γιατρός: 15,
   \item
-    νοσηλευτής: 20
+    νοσηλευτής: 20,
   \item
-    διοικητικό προσωπικό: 25
+    διοικητικό προσωπικό: 25.
   \end{itemize}
 \item
-  προσωπικό δεν μπορεί να έχει διαδοχικές βάρδιες (πρωί \textbf{ΚΑΙ}
+  Προσωπικό δεν μπορεί να έχει διαδοχικές βάρδιες (πρωί \textbf{ΚΑΙ}
   απόγευμα \textbf{\emph{Ή}} απόγευμα \textbf{ΚΑΙ} νύχτα
-  \textbf{\emph{Ή}} νύχτα \textbf{ΚΑΙ} πρωί (επόμενης) )
+  \textbf{\emph{Ή}} νύχτα \textbf{ΚΑΙ} πρωί (επόμενης) ).
 \item
-  προσωπικό δεν μπορεί να έχει \textgreater=3 διαδοχικές νυστερινές
-  βάρδιες
+    Προσωπικό \textbf{δεν μπορεί να έχει \textgreater=3 διαδοχικές} νυχτερινές βάρδιες.
 \item
-    εξυπηρέτηση διαλογής βάσει επιπέδου επείγοντος με \eng{FIFO}
+    Η εξυπηρέτηση διαλογής γίνεται βάσει του επιπέδου επείγοντος με μέθοδο \eng{FIFO}. Η απαίτηση αυτή υλοποιείται με ένα \eng{view}.
+\item 
+    \textbf{Κάθε τετελεσμένη} νοσηλεία \textbf{έχει} διάγνωση εξόδου.
+\item 
+    \textbf{Τετελεσμένη} νοσηλεία \textbf{μπορεί να έχει} αξιολόγηση.
 \item
-  δύο επεμβάσεις δεν μπορούν να πραγματοποιούνται ταυτόχρονα στον ίδιο
-  χώρο και με το ίδιο προσωπικό
+    Δύο επεμβάσεις \textbf{δεν μπορούν να πραγματοποιούνται ταυτόχρονα στον ίδιο} χώρο \textbf{και με το ίδιο} προσωπικό.
 \item
-  ασθενείς μπορεί να έχουν καταγεγραμμένες αλλεργίες σε δραστικές ουσίες
+    \textbf{Απαγορεύεται} η συνταγογράφηση φαρμάκων \textbf{με} δραστική ουσία \textbf{στην οποία είναι αλλεργικός} ο ασθενής.
 \item
-  απαγορεύεται η συνταγογράφηση φαρμάκων με δραστική ουσία στην οποία
-  είναι αλλεργικός ο ασθενής
+  (γιατρός, ασθενής, φάρμακο, ημερομηνίας έναρξης) \textbf{είναι
+  \eng{superkey}}.
+\item 
+    Οποιοδήποτε ζεύγος ημερομηνιών (αρχή, τέλος) πρέπει να έχει «τέλος» μετά την «αρχή» ή κενό.
+\item
+    Oι ιατρικές επεμβάσεις καλύπτονται στις κατηγορίες Α, Β (\eng{id} $< 6609$) της δοθείσας κωδικοποίησης\footnote{\label{fn:note1}\eng{\urlcodes}}.
+\item
+    Οι εργαστηριακές εξετάσεις καλύπτονται στις κατηγορίες Γ, Δ, Ε (\eng{id} $\geq 6609$) της δοθείσας κωδικοποίησης\footnote{βλ. σχόλιο \ref{fn:note1}}.
 \end{itemize}
 
 \subsection{Υποθέσεις και Σημειώσεις}
 \begin{itemize}
-    \item
-Κάθε τμήμα διαθέτει αίθουσες με κάποιο τύπο (χειρουργικές, επεμβάσεων, κ.λπ), κατάσταση και μοναδική αρίθμηση.
-
-    \item
+\item 
+    Στην περίπτωση που μια εισαγωγή διαλογής οδηγήσει σε νοσηλεία, θεωρούμε ως ώρα εξυπηρέτησης της διαλογής την ώρα έναρξης της νοσηλείας.
+\item
+    Κάθε τμήμα διαθέτει αίθουσες με κάποιο τύπο (χειρουργικές, επεμβάσεων, κ.λπ), κατάσταση και μοναδική αρίθμηση.
+\item
+    Τα τμήματα διαθέτουν εξοπλισμό εντός ή εκτός αιθουσών του τμήματος.
+\item
 Η διεύθυνση ασθενών εμπεριέχει τα στοιχεία του ΕΜΕπ
-
-    \item
-Χάριν απλότητας της υλοποίησης, θεωρούμε ότι κάθε κοστολόγηση μπορεί να συνδέεται με το πολύ έναν ασφαλιστικό φορέα. Στην περίπτωση, δηλαδή, παράλληλης ασφάλισης του ασθενούς, μόνο ένας φορέας καλύπτει κάθε κοστολόγηση.
-
-    \item
-Οι εικόνες αναπαρίστανται ως \eng{blobs}.
-
-    \item
-Επιταχύνουμε, στο \eng{install.sql}, την εισαγωγή δεδομένων βάσει του ερωτήματος \texttt{A.6}\footnote{\eng{https://dev.mysql.com/doc/workbench/en/workbench-faq.html#faq-workbench-increase-performance}}.
-
-    \item
-        Οι γιατρικές ειδικότητες προκύπτουν από τη λίστα του ΓεΣΥ \cite{gesy_spec}.
-
-    \item
-Στο δοθέν αρχείο ΕΛΛΗΝΙΚΗ\_ΟΝΟΜΑΤΟΛΟΓΙΑ\_ΚΑΙ\_ΚΩΔΙΚΟΠΟΙΗΣΗ\_ΤΩΝ\_ΙΑΤΡΙΚΩΝ\_ΠΡΑΞΕΩΝ, κάποιες τιμές είναι μη μοδανικές, και παραλείπονται απο τη βάση.
+\item
+    Χάριν απλότητας της υλοποίησης, θεωρούμε ότι κάθε κοστολόγηση μπορεί να συνδέεται με το πολύ έναν ασφαλιστικό φορέα. Στην περίπτωση, δηλαδή, παράλληλης ασφάλισης του ασθενούς, μόνο ένας φορέας καλύπτει κάθε κοστολόγηση.
+\item
+    Οι εικόνες αναπαρίστανται ως \eng{blobs}.
+\item
+    Επιταχύνουμε, στο \eng{install.sql}, την εισαγωγή δεδομένων βάσει του ερωτήματος \texttt{A.6}\footnote{\eng{\urlworkbench}}.
+\item
+    Οι γιατρικές ειδικότητες προκύπτουν από τη λίστα του ΓεΣΥ \footnote{\eng{\urlgesy}}.
+\item
+    Στο δοθέν αρχείο ΕΛΛΗΝΙΚΗ\_ΟΝΟΜΑΤΟΛΟΓΙΑ\_ΚΑΙ\_ΚΩΔΙΚΟΠΟΙΗΣΗ\_ΤΩΝ\_ΙΑΤΡΙΚΩΝ\_ΠΡΑΞΕΩΝ, κάποιες τιμές είναι μη μοναδικές, και παραλείπονται απο τη βάση.
 \langeng
 \begin{lstlisting}
 +---------+------+---------------------------------------------------+
@@ -234,16 +291,15 @@
 \end{lstlisting}
 \langgrc
 
-    \item
-Θεωρούμε ότι η πρόσθετη ημερήσια χρέωση, στην περίπτωση που η παραμονή ενός ασθενούς υπερβεί τον αναμενόμενο χρόνο, ανέρχεται στο 10\% του βασικού κόστους. 
-
+\item
+    Θεωρούμε ότι η πρόσθετη ημερήσια χρέωση, στην περίπτωση που η παραμονή ενός ασθενούς υπερβεί τον αναμενόμενο χρόνο, ανέρχεται στο 10\% του βασικού κόστους. 
 \end{itemize}
-\section{Ερωτήματα}
+
 \subsection{\eng{Q11}}
-Σημειώνουμε ότι, δεδομένου να μη λάβουμε κενό αποτέλεσμα, κάνουμε τις ακόλουθες αλλαγές στα δεδομένα που δίδονται από το \eng{\texttt{code/insert.sql}}:
+Σημειώνουμε ότι, δεδομένου να μη λάβουμε κενό αποτέλεσμα στη ερώτημα \eng{Q11}, κάνουμε τις ακόλουθες αλλαγές στα δεδομένα που δίδονται από το \eng{\texttt{code/insert.sql}}:
 
 \langeng
-\begin{lstlisting}
+\begin{lstlisting}[language=sql, breaklines=true, breakatwhitespace=true, columns=fullflexible]
 UPDATE surgical_act
 SET primary_doc_id = '0309563392'
 WHERE primary_doc_id IN ('0509973114', '2312517384', '2103891566', '2402660476');
@@ -254,7 +310,7 @@ WHERE primary_doc_id IN ('0509973114', '2312517384', '2103891566', '2402660476')
 Όμοια με το ερώτημα \eng{Q11}, κάνουμε τις ακόλουθες αλλαγές στα δεδομένα που δίδονται από το \eng{\texttt{code/insert.sql}}:
 
 \langeng
-\begin{lstlisting}
+\begin{lstlisting}[language=sql, breaklines=true, breakatwhitespace=true, columns=fullflexible]
 UPDATE admission_diagnosis ad
 JOIN hospitalisation h ON h.hosp_id = ad.hosp_id
 SET ad.diag_id = 'A01.4'
@@ -279,7 +335,74 @@ SET ad.diag_id = 'V85.9'
 WHERE YEAR(h.admission_date) = 2024
 LIMIT 10;
 \end{lstlisting}
+\langgrc
 
+\subsection{Χρήση Εργαλείων Τεχνητής Νοημοσύνης}
+Επιλεγμένα σημεία της εργασίας υλοποιήθηκαν με τη βοήθεια εργαλείων τεχνητής νοημοσύνης. Συγκεκριμένα, χρησιμοποιήθηκε η δωρεάν έκδοση \eng{ChatGPT-5.2}, άνευ λογαριασμού χρήστη, στα ακόλουθα σημεία:
+
+\begin{itemize}
+\tightlist
+\item
+    Υλοποίηση \eng{triggers} για τις σχέσεις εποπτείας μεταξύ ιατρών.
+\item
+    Υλοποίηση \eng{triggers} για τους περιορισμούς στην ανάθεση βαρδιών στο προσωπικό.
+\item
+    Φόρτωση δεδομένων από τη δοθείσα λίστα φαρμακευτικών προϊόντων στη βάση.
+\item
+    Εύρεση συνολικού μέσου των αξιολογήσεων κάθε ασθενούς για κάθε νοσηλεία στο ιστορικό του, έναντι μέσης αξιολόγησης κάθε νοσηλείας ξεχωριστά.
+\item
+    Βελτιστοποίηση λύσης στο ερώτημα \eng{Q08}.
+\end{itemize}
+
+\noindent Οι ανωτέρω ((διάλογοι)) έχουν μεταφερθεί αυτολεξεί στον φάκελο \eng{\texttt{docs/transcripts}}.
+
+\section{Ερωτήματα}
+\subsection{\eng{Q04}}
+\langeng
+\lstinputlisting[language=sql, breaklines=true, breakatwhitespace=true, columns=fullflexible]{../sql/Q04.sql}
+\langgrc
+
+\subsubsection{\eng{Ανάλυση}}
+Ευθύς αμέσως παραθέτουμε το αποτέλεσμα του \eng{explain}.
+
+\langeng
+\begin{table}[htbp]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \begin{tabular}{c c c c c c c c c c}
+        \hline
+        id & select\_type & table & type & possible\_keys & key & key\_len & ref & rows & Extra \\
+        \hline
+        1 & PRIMARY & <derived2> & ALL & NULL & NULL & NULL & NULL & 436 & Using temporary; Using filesort \\
+        2 & DERIVED & r & ALL & fk\_rating\_hosp\_id & NULL & NULL & NULL & 206 & \\
+        2 & DERIVED & h & eq\_ref & PRIMARY & PRIMARY & 4 & ntua\_db\_2026.r.hosp\_id & 1 & \\
+        2 & DERIVED & hlt & ref & PRIMARY,fk\_hosp\_lab\_test\_hosp\_id & fk\_hosp\_lab\_test\_hosp\_id & 4 & ntua\_db\_2026.r.hosp\_id & 1 & Using index \\
+        2 & DERIVED & lt & eq\_ref & PRIMARY & PRIMARY & 4 & ntua\_db\_2026.hlt.lab\_test\_id & 1 & \\
+        3 & UNION & sa & index & PRIMARY & fk\_surgery\_primary\_doc\_id & 42 & NULL & 101 & Using index \\
+        3 & UNION & hma & eq\_ref & PRIMARY,idx\_fk\_hosp\_id & PRIMARY & 4 & ntua\_db\_2026.sa.med\_act\_id & 1 & \\
+        3 & UNION & h & eq\_ref & PRIMARY & PRIMARY & 4 & ntua\_db\_2026.hma.hosp\_id & 1 & \\
+        3 & UNION & r & ref & fk\_rating\_hosp\_id & fk\_rating\_hosp\_id & 4 & ntua\_db\_2026.hma.hosp\_id & 1 & \\
+        4 & UNION & sada & index & PRIMARY & fk\_surg\_doc\_assist\_id & 42 & NULL & 129 & Using index \\
+        4 & UNION & hma & eq\_ref & PRIMARY,idx\_fk\_hosp\_id & PRIMARY & 4 & ntua\_db\_2026.sada.med\_act\_id & 1 & \\
+        4 & UNION & h & eq\_ref & PRIMARY & PRIMARY & 4 & ntua\_db\_2026.hma.hosp\_id & 1 & \\
+        4 & UNION & r & ref & fk\_rating\_hosp\_id & fk\_rating\_hosp\_id & 4 & ntua\_db\_2026.hma.hosp\_id & 1 & \\
+        \hline
+        \end{tabular}
+    }
+    \caption{EXPLAIN output for Q04}
+    \end{table}
+\langgrc
+
+\noindent Παρατηρούμε ότι το εξωτερικό (\eng{primary}) \eng{select} χρησιμοποιεί \eng{filesort} και προσωρινούς πίνακες για τον υπολογισμό του αποτελέσματος.
+
+\subsection{\eng{Q06}}
+
+\section{\eng{DDL}}
+\langeng
+%\lstinputlisting[language=sql, breaklines=true, breakatwhitespace=true, columns=fullflexible]{media/sinstall.sql}
+\langgrc
+
+\clearpage
 \langeng
 \nocite{*}
 \printbibliography

@@ -1,5 +1,5 @@
 /*
-SQL script για τη φόρτωση της βάσης με δεδομένα
+SQL script fpr loading data
 */
 
 SET FOREIGN_KEY_CHECKS = 0;

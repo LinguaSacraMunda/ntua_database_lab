@@ -1,8 +1,8 @@
+import csv
 import random
+from collections import defaultdict
 from datetime import datetime, timedelta
 from faker import Faker
-import csv
-from collections import defaultdict
 
 
 departments = ["Casualty", "Operating theatre (OT)", "Intensive care unit (ICU)", "Anesthesiology", "Cardiology", "ENT", "Geriatric", "Gastroenterology", "General surgery", "Gynaecology", "Haematology", "Pediatrics", "Neurology", "Oncology", "Opthalmology", "Orthopaedic", "Urology", "Psychiatry", "Inpatient Department (IPD)", "Outpatient Department (OPD)"]
@@ -42,11 +42,11 @@ DISABLE_FK_CHECK = True
 
 Q03_SAME_DEPT = 5;
 
-TEMP = "/home/admin/shared_ntua/6th_semester/databases/project/"
+BASE_DIR = ""
 
-icd10_path = TEMP + "data/icd10.csv"
-ken_path = TEMP + "data/KEN.csv"
-pharm_prod_path = TEMP + "data/article-57-product-data_en_clean.csv"
+icd10_path = BASE_DIR + "data/icd10.csv"
+ken_path = BASE_DIR + "data/KEN.csv"
+pharm_prod_path = BASE_DIR + "data/article-57-product-data_en_clean.csv"
 
 fake = Faker('el_GR')
 
@@ -63,6 +63,7 @@ media_num = 0;
 # ========================================================================
 #                              General data
 # ========================================================================
+
 def random_date(_start=1940, _end=2026):
     start = datetime(_start, 1, 1);
     end = datetime(_end, 12, 31);
@@ -105,7 +106,7 @@ def get_icd10():
     with open(icd10_path, newline='\n', encoding='utf-8') as f:
         reader = csv.reader(f);
         hlpr = None;
-        for i, row in enumerate(reader, 1):     # this is stupid
+        for i, row in enumerate(reader, 1):     # python is a language
             if random.randrange(i) == 0:
                 hlpr = row[0];
 
@@ -133,9 +134,11 @@ def get_pharm_prod():
                 hlpr = row[0];
 
         return hlpr;
+
 # ========================================================================
 #                               Patient Gen 
 # ========================================================================
+
 def generate_patient(fdr):
     dob = random_date(1940, 2025);
     amka = generate_amka(dob);
@@ -177,6 +180,7 @@ def generate_patient(fdr):
 # ========================================================================
 #                               Nurse Gen 
 # ========================================================================
+
 def generate_nurse(fdr):
     dob = random_date(1940, 2000)
     doe = generate_employment_date(dob)
@@ -201,6 +205,7 @@ def generate_nurse(fdr):
 # ========================================================================
 #                               Admin Gen 
 # ========================================================================
+
 def generate_admin(fdr):
     dob = random_date(1940, 2000)
     doe = generate_employment_date(dob)
@@ -227,6 +232,7 @@ def generate_admin(fdr):
 # ========================================================================
 #                               Doctor Gen 
 # ========================================================================
+
 def generate_doctor(fdr):
     dob = random_date(1940, 2000)
     doe = generate_employment_date(dob)
@@ -327,7 +333,6 @@ def generate_bed(fdr):
 
     fdr.write(f"INSERT INTO bed (bed_id, type, status, dept_name, room_id) VALUES ('{bed_id}', '{type_t}', '{status}', '{dept_name}', '{room_id}');\n")
 
-
 # ========================================================================
 #                             Equipment Gen 
 # ========================================================================
@@ -366,7 +371,6 @@ def generate_allergy(fdr, lim, amka):
     for i in range(random.randint(1, 4)):
         act_sub_id = random.randint(1, lim)
         fdr.write(f"INSERT INTO patient_allergy (AMKA, act_sub_id) VALUES ('{amka}', '{act_sub_id}');\n")
-
 
 # ========================================================================
 #                               Media Gen 
@@ -461,7 +465,6 @@ def generate_rating(fdr,_hosp_id, amka):
     experience = random.randint(1,5)
 
     fdr.write(f"INSERT INTO rating (AMKA, hosp_id, medical_care, nursing_care, cleanliness, food, experience) VALUES ('{amka}', '{_hosp_id}', '{medical_care}', '{nursing_care}', '{cleanliness}', '{food}', '{experience}');\n")
-
 
 # ========================================================================
 #                             Hospitalisation 
@@ -609,15 +612,13 @@ def generate_dept_shifts(fdr):
         for _ in range(random.randint(10, 20)):
             generate_dept_shifts_aux(fdr, i)
     
-
 # ========================================================================
 #                                 Main 
 # ========================================================================
+
 def clear_tables(fdr):
     for i in tables:
         fdr.write(f"TRUNCATE TABLE {i};\n")
-    
-
 
 def main():
     with open("insert.sql", "w") as fdr:
@@ -652,10 +653,6 @@ def main():
 
         generate_departments(fdr)
 
-        #for i in list(set(doctor_ids) - set(doctor_dir)):
-        #    assign_to_department(fdr, "doctor", i)
-
-
         for _ in range(room_num):
             generate_room(fdr)
 
@@ -675,7 +672,6 @@ def main():
             assign_to_carrier(fdr, insurance_carrier_num, i)
             generate_allergy(fdr, act_sub_num, i)
 
-
         for i in doctor_ids:
             generate_media(fdr, "doctor", i)
 
@@ -693,7 +689,6 @@ def main():
 
         for i in range(1, room_num + 1):
             generate_media(fdr, "room", i)
-
 
         for _ in range(hosp_num):
             generate_hospitalisation(fdr)

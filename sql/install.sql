@@ -1,5 +1,5 @@
 /*
-SQL script για τη δημιουργία του σχήματος της βάσης δεδομένων
+SQL script for schema installation
 */
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
@@ -1365,9 +1365,6 @@ CREATE TRIGGER ins_surgery_temporality_assist_nurse BEFORE INSERT ON surgical_ac
         SET MESSAGE_TEXT = 'Assistant nurse doctor already assigned at given time';
     END IF;
 END;;
-
-/*
-*/
 
 -- =========================================================== 
 --                          Rating 

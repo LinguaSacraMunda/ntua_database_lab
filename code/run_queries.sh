@@ -1,5 +1,11 @@
 #!/bin/bash
 
+act=$(systemctl -q is-active mysql && echo 1 || echo 0)
+if [ $act -eq 0 ]; then
+    echo "mysql/mariadb inactive"
+    exit 1
+fi
+
 for i in $(seq -w 1 15)
 do
     echo "Q${i} START"

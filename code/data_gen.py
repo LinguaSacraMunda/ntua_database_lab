@@ -79,7 +79,7 @@ def generate_triage(fdr):
     level = random.randint(1, 5)
     symptoms = fake.text(max_nb_chars=200)
     arrival_time = random_date(_start=2020, _end=2026);
-    admission_time = arrival_time + timedelta(minutes=random.randint(10, 300)) if (random.random() < 0.9) else None;
+    admission_time = arrival_time + timedelta(minutes=random.randint(10, 300)) if (random.random() < 0.7) else None;
     fdr.write(f"INSERT INTO triage (triage_id, level, arrival_time, admission_time, symptoms) VALUES ('{triage_id}', '{level}', '{arrival_time}', {'NULL' if admission_time is None else '\'' + str(admission_time) + '\''}, '{symptoms}');\n")
 
     return triage_id

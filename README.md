@@ -35,7 +35,7 @@ mysql -u root -p ntua_db_2026 < code/insert.sql
 
 # Run queries 
 
-We provide a simple bash script that runs all the question queries `sql/QXX.sql` and generates the coresponding output files `sql/QXX_out.txt`. Note that the MariaDB password may need to be changed.
+We provide a simple bash script that runs all the question queries `sql/QXX.sql` and generates the coresponding output files `sql/QXX_out.txt`.
 ```shell
-code/run_queries.sh
+code/run_queries.sh <mysql-password>
 ```

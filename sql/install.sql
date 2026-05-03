@@ -1428,8 +1428,8 @@ DELIMITER ;
 CREATE VIEW vw_triage_queue AS
 SELECT *
 FROM triage
-WHERE admission_time IS NOT NULL
-ORDER BY level DESC, arrival_time ASC;
+WHERE admission_time IS NULL
+ORDER BY level, arrival_time ASC;
 
 --
 -- Print doctor specialisation along with values of doctor table

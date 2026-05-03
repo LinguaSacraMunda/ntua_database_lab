@@ -26,6 +26,8 @@ right=2.5cm
 \usepackage{tabularx}
 \usepackage{booktabs}
 
+\lstset{breaklines=true, breakatwhitespace=true, columns=fullflexible}
+
 \newcommand{\eng}[1]{\foreignlanguage{english}{#1}}
 \newcommand{\langeng}{\selectlanguage{english}}
 \newcommand{\langgrc}{\selectlanguage{greek}}
@@ -71,6 +73,14 @@ right=2.5cm
 \newpage
 \pagenumbering{arabic}
 
+\section{Εισαγωγή}
+
+Η παρούσα αναφορά σκιαγραφεί την ανάλυση και υλοποίηση μιας βάσης δεδομένων στο πλαισίο του μαθήματος ((Βάσεις Δεδομένων)) του 6ου εξαμήνου της Σχολής ΗΜΜΥ, ΕΜΠ.
+
+Σκοπός μας είναι να μοντελοποιήσουμε τις διάφορες πληροφοριακές ανάγκες ενός νοσοκομείου, ανάγοντάς τες σε ένα σύνολο σχέσεων και οντοτήτων, το οποίο διαχειριζόμαστε υπολογιστικά. Συγκεκριμένα, υλοποιούμε μια σχεσιακή βάση, χρησιμοποιώντας το σύστημα διαχείρισης βάσεων δεδομένων \eng{MySQL/MariaDB}. Επιπλέον, αναγνωρίζουμε και επιβάλλουμε διάφορους περιορισμούς στα δεδομένα, είτε λογικούς, είτε ως λειτουργική απαίτηση του νοσοκομείου, με χρήση κατάλληλων \eng{\texttt{constraints}} και \eng{\texttt{triggers}}.
+Τέλος, ελέγχουμε την ορθότητα της υλοποίησής μας θέτοντας έναν αριθμό ερωτήσεων προς τη βάση, λαμβάνοντας κάθε φορά ανάλογες απαντήσεις.
+
+Σημειώνουμε ότι, πέραν των αρχείων \eng{SQL} που ορίζουν και αλληλεπιδρούν με τη βάση, στον φάκελο \eng{\texttt{code/}}, προσφέρουμε ένα αρχείο \eng{Python} το οποίο δημιουργεί δεδομένα για τη βάση με ημι-τυχαίο τρόπο, καθώς και ένα \eng{bash script} που εκτελέι το σύνολο των προαναφερθέντων ερωτημάτων, και καταγράφει το αποτέλεσμά τους. 
 
 \section{\eng{ERD}}
 
@@ -266,7 +276,7 @@ right=2.5cm
 \item
     Χάριν απλότητας της υλοποίησης, θεωρούμε ότι κάθε κοστολόγηση μπορεί να συνδέεται με το πολύ έναν ασφαλιστικό φορέα. Στην περίπτωση, δηλαδή, παράλληλης ασφάλισης του ασθενούς, μόνο ένας φορέας καλύπτει κάθε κοστολόγηση.
 \item
-    Οι εικόνες αναπαρίστανται ως \eng{blobs}.
+    Οι εικόνες αναπαρίστανται ως \eng{paths} σε υποθετικές πληροφορίες στον δίσκο.
 \item
     Επιταχύνουμε, στο \eng{install.sql}, την εισαγωγή δεδομένων βάσει του ερωτήματος \texttt{A.6}\footnote{\eng{\urlworkbench}}.
 \item
@@ -299,7 +309,7 @@ right=2.5cm
 Σημειώνουμε ότι, δεδομένου να μη λάβουμε κενό αποτέλεσμα στο ερώτημα \eng{Q11}, κάνουμε τις ακόλουθες αλλαγές στα δεδομένα που δίδονται από το \eng{\texttt{code/insert.sql}}:
 
 \langeng
-\begin{lstlisting}[language=sql, breaklines=true, breakatwhitespace=true, columns=fullflexible]
+\begin{lstlisting}[language=sql]
 UPDATE surgical_act
 SET primary_doc_id = '0309563392'
 WHERE primary_doc_id IN ('0509973114', '2312517384', '2103891566', '2402660476');
@@ -310,7 +320,7 @@ WHERE primary_doc_id IN ('0509973114', '2312517384', '2103891566', '2402660476')
 Όμοια με το ερώτημα \eng{Q11}, κάνουμε τις ακόλουθες αλλαγές στα δεδομένα που δίδονται από το \eng{\texttt{code/insert.sql}}:
 
 \langeng
-\begin{lstlisting}[language=sql, breaklines=true, breakatwhitespace=true, columns=fullflexible]
+\begin{lstlisting}[language=sql]
 UPDATE admission_diagnosis ad
 JOIN hospitalisation h ON h.hosp_id = ad.hosp_id
 SET ad.diag_id = 'A01.4'
@@ -359,10 +369,10 @@ LIMIT 10;
 \section{Ερωτήματα}
 \subsection{\eng{Q04}}
 \langeng
-\lstinputlisting[language=sql, breaklines=true, breakatwhitespace=true, columns=fullflexible]{../sql/Q04.sql}
+\lstinputlisting[language=sql]{../sql/Q04.sql}
 \langgrc
 
-\subsubsection{\eng{Ανάλυση}}
+\subsubsection{Ανάλυση}
 Ευθύς αμέσως παραθέτουμε το αποτέλεσμα του \eng{explain}.
 
 \langeng
@@ -399,7 +409,7 @@ LIMIT 10;
 
 \section{\eng{DDL}}
 \langeng
-%\lstinputlisting[language=sql, breaklines=true, breakatwhitespace=true, columns=fullflexible]{media/sinstall.sql}
+%\lstinputlisting[language=sql]{media/sinstall.sql}
 \langgrc
 
 \clearpage

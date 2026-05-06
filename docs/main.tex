@@ -359,7 +359,7 @@ LIMIT 10;
 \item
     Φόρτωση δεδομένων από τη δοθείσα λίστα φαρμακευτικών προϊόντων στη βάση.
 \item
-    Εύρεση συνολικού μέσου των αξιολογήσεων κάθε ασθενούς για κάθε νοσηλεία στο ιστορικό του, έναντι μέσης αξιολόγησης κάθε νοσηλείας ξεχωριστά.
+    Εύρεση συνολικού μέσου των αξιολογήσεων κάθε ασθενούς για κάθε νοσηλεία στο ιστορικό του, έναντι μέσης αξιολόγησης κάθε νοσηλείας ξεχωριστά (ερώτημα \eng{Q06}).
 \item
     Βελτιστοποίηση λύσης στο ερώτημα \eng{Q08}.
 \end{itemize}
@@ -380,9 +380,9 @@ LIMIT 10;
     \centering
     \resizebox{\textwidth}{!}{
         \begin{tabular}{c c c c c c c c c c}
-        \hline
+        \toprule
         id & select\_type & table & type & possible\_keys & key & key\_len & ref & rows & Extra \\
-        \hline
+        \midrule
         1 & PRIMARY & <derived2> & ALL & NULL & NULL & NULL & NULL & 436 & Using temporary; Using filesort \\
         2 & DERIVED & r & ALL & fk\_rating\_hosp\_id & NULL & NULL & NULL & 206 & \\
         2 & DERIVED & h & eq\_ref & PRIMARY & PRIMARY & 4 & ntua\_db\_2026.r.hosp\_id & 1 & \\
@@ -396,7 +396,7 @@ LIMIT 10;
         4 & UNION & hma & eq\_ref & PRIMARY,idx\_fk\_hosp\_id & PRIMARY & 4 & ntua\_db\_2026.sada.med\_act\_id & 1 & \\
         4 & UNION & h & eq\_ref & PRIMARY & PRIMARY & 4 & ntua\_db\_2026.hma.hosp\_id & 1 & \\
         4 & UNION & r & ref & fk\_rating\_hosp\_id & fk\_rating\_hosp\_id & 4 & ntua\_db\_2026.hma.hosp\_id & 1 & \\
-        \hline
+        \bottomrule
         \end{tabular}
     }
     \caption{EXPLAIN output for Q04}
@@ -406,6 +406,76 @@ LIMIT 10;
 \noindent Παρατηρούμε ότι το εξωτερικό (\eng{primary}) \eng{select} χρησιμοποιεί \eng{filesort} και προσωρινούς πίνακες για τον υπολογισμό του αποτελέσματος.
 
 \subsection{\eng{Q06}}
+\langeng
+\lstinputlisting[language=sql]{../sql/Q06.sql}
+\langgrc
+
+\subsubsection{Ανάλυση}
+Όμοια, με χρήση του \eng{\texttt{EXPLAIN}} λαμβάνουμε:
+
+\langeng
+\begin{table}[htbp]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \begin{tabular}{c c c c c c c c c c}
+        \toprule
+        id & select\_type & table & type & possible\_keys & key & key\_len & ref & rows & Extra \\
+        \midrule
+        1 & SIMPLE & ad & index & PRIMARY & fk\_adm\_diag\_diagnosis\_id & 42 & NULL & 425 & Using index; Using temporary; Using filesort \\
+        1 & SIMPLE & pr & eq\_ref & PRIMARY & PRIMARY & 4 & ntua\_db\_2026.ad.hosp\_id & 1 &  \\
+        1 & SIMPLE & h & eq\_ref & PRIMARY & PRIMARY & 4 & ntua\_db\_2026.ad.hosp\_id & 1 &  \\
+        1 & SIMPLE & dd & ref & PRIMARY & PRIMARY & 4 & ntua\_db\_2026.ad.hosp\_id & 1 &  \\
+        1 & SIMPLE & r & ref & fk\_rating\_hosp\_id & fk\_rating\_hosp\_id & 4 & ntua\_db\_2026.ad.hosp\_id & 1 &  \\
+        \bottomrule
+        \end{tabular}
+    }
+    \caption{EXPLAIN output for Q06}
+    \end{table}
+\langgrc
+
+\noindent Επιβάλλοντας τη χρήση \eng{index} στον πίνακα \eng{patient\_record} αναμένουμε ότι η σειρά των ενώσεων θα αρχίζει από αυτόν.
+
+\langeng
+\begin{lstlisting}[language=sql]
+    SELECT
+    pr.AMKA, 
+    h.hosp_id, 
+    calculate_hospit_cost(h.hosp_id) AS cost, 
+    ad.diag_id as admission_diagnosis, 
+    dd.diag_id as discharge_diagnosis, 
+    ROUND(
+        (r.medical_care + r.nursing_care + r.cleanliness + r.food + r.experience) / 5,
+        2) AS avg_rating,
+    ROUND(
+        AVG((r.medical_care + r.nursing_care + r.cleanliness + r.food + r.experience) / 5) 
+        OVER (PARTITION BY pr.AMKA),
+        2) AS total_avg_rating
+FROM patient_record pr FORCE INDEX (PRIMARY)
+INNER JOIN hospitalisation h ON h.hosp_id = pr.hosp_id
+INNER JOIN admission_diagnosis ad ON h.hosp_id = ad.hosp_id
+LEFT JOIN discharge_diagnosis dd ON h.hosp_id = dd.hosp_id
+LEFT JOIN rating r ON h.hosp_id = r.hosp_id
+ORDER BY pr.AMKA;
+\end{lstlisting}
+\langgrc
+
+
+\subsection{Μέτρηση χρόνου}
+Λαμβάνουμε τον μέσο χρόνο από 10 εκτελέσεις του κάθε \eng{query}. Τα αποτελέσματα παρατίθονται στον πίνακα \ref{tab:times}. Παρατηρούμε ότι οι αλλαγές που βάζουμε οδηγούν σε υποβέλτιστη εκτέλεση των ερωτημάτων μας.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{c c c}
+        \toprule
+        Μέθοδος / Ερώτημα & \eng{Q04} & \eng{Q06} \\
+         \midrule
+        Απλή κλίση & 6.4\unit{\milli\second} & 20.7\unit{\milli\second} \\
+        Εναλλακτική έκδοση & ~ & 29.5\unit{\milli\second} \\
+         \bottomrule
+    \end{tabular}
+    \caption{Μέσος χρόνος εκτέλεσης \eng{queries}}
+    \label{tab:times}
+\end{table}
 
 \section{\eng{DDL}}
 \langeng

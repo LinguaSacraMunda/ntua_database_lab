@@ -26,12 +26,17 @@ right=2.5cm
 \usepackage{tabularx}
 \usepackage{booktabs}
 
-\lstset{breaklines=true, breakatwhitespace=true, columns=fullflexible}
+\lstset{
+breaklines=true,
+breakatwhitespace=true,
+columns=fullflexible,
+extendedchar=true}
 
 \newcommand{\eng}[1]{\foreignlanguage{english}{#1}}
 \newcommand{\langeng}{\selectlanguage{english}}
 \newcommand{\langgrc}{\selectlanguage{greek}}
 
+\urldef{\urldrawio}\url{https://www.drawio.com/}
 \urldef{\urldbeaver}\url{https://dbeaver.io/}
 \urldef{\urlcodes}\url{https://www.moh.gov.gr/articles/health/domes-kai-draseis-gia-thn-ygeia/kwdikopoihseis/kleista-enopoihmena-noshlia/713-kwdikopoihseis?fdl=193}
 \urldef{\urlworkbench}\url{https://dev.mysql.com/doc/workbench/en/workbench-faq.html#faq-workbench-increase-performance}
@@ -40,7 +45,7 @@ right=2.5cm
 \title{Βάσεις Δεδομένων\\[1.2ex]
 \Large Εξαμηνιαία Εργασία Έτους 2025-2026}
 \date{\today}
-\author{Ίωνας Τσακίρης 03123077\footnote{\eng{el23077@mail.ntua.gr}}}
+\author{Ίωνας Τσακίρης 03123077\footnote{\eng{el23077@mail.ntua.gr}} \,- Ομάδα 77}
 
 
 % Definition of \maketitle
@@ -75,14 +80,15 @@ right=2.5cm
 
 \section{Εισαγωγή}
 
-Η παρούσα αναφορά σκιαγραφεί την ανάλυση και υλοποίηση μιας βάσης δεδομένων στο πλαισίο του μαθήματος ((Βάσεις Δεδομένων)) του 6ου εξαμήνου της Σχολής ΗΜΜΥ, ΕΜΠ.
+Η παρούσα αναφορά σκιαγραφεί την ανάλυση και υλοποίηση μιας βάσης δεδομένων στο πλαίσιο του μαθήματος ((Βάσεις Δεδομένων)) του 6ου εξαμήνου της Σχολής ΗΜΜΥ, ΕΜΠ.
 
 Σκοπός μας είναι να μοντελοποιήσουμε τις διάφορες πληροφοριακές ανάγκες ενός νοσοκομείου, ανάγοντάς τες σε ένα σύνολο σχέσεων και οντοτήτων, το οποίο διαχειριζόμαστε υπολογιστικά. Συγκεκριμένα, υλοποιούμε μια σχεσιακή βάση, χρησιμοποιώντας το σύστημα διαχείρισης βάσεων δεδομένων \eng{MySQL/MariaDB}. Επιπλέον, αναγνωρίζουμε και επιβάλλουμε διάφορους περιορισμούς στα δεδομένα, είτε λογικούς, είτε ως λειτουργική απαίτηση του νοσοκομείου, με χρήση κατάλληλων \eng{\texttt{constraints}} και \eng{\texttt{triggers}}.
 Τέλος, ελέγχουμε την ορθότητα της υλοποίησής μας θέτοντας έναν αριθμό ερωτήσεων προς τη βάση, λαμβάνοντας κάθε φορά ανάλογες απαντήσεις.
 
-Σημειώνουμε ότι, πέραν των αρχείων \eng{SQL} που ορίζουν και αλληλεπιδρούν με τη βάση, στον φάκελο \eng{\texttt{code/}}, προσφέρουμε ένα αρχείο \eng{Python} το οποίο δημιουργεί δεδομένα για τη βάση με ημι-τυχαίο τρόπο, καθώς και ένα \eng{bash script} που εκτελέι το σύνολο των προαναφερθέντων ερωτημάτων, και καταγράφει το αποτέλεσμά τους. 
+Σημειώνουμε ότι, πέραν των αρχείων \eng{SQL} που ορίζουν και αλληλεπιδρούν με τη βάση, στον φάκελο \eng{\texttt{code/}}, προσφέρουμε ένα αρχείο \eng{Python} το οποίο δημιουργεί δεδομένα για τη βάση με ημι-τυχαίο τρόπο, καθώς και ένα \eng{bash script} που εκτελεί το σύνολο των προαναφερθέντων ερωτημάτων προς τη βάση, και καταγράφει το αποτέλεσμά τους. 
 
 \section{\eng{ERD}}
+Το διάγραμμα οντοτήτων-συσχετίσεων της βάσης δημιουργήθηκε με τη βοήθεια του \eng{draw.io\footnote{\urldrawio}}.
 
 \begin{figure}[h]
     \includegraphics[width=\linewidth]{../diagrams/er.pdf}
@@ -172,7 +178,7 @@ right=2.5cm
     χειρουργικές επεμβάσεις \textbf{είναι} ιατρικές επεμβάσεις
 \item
   \textbf{κάθε} χειρουργική επέμβαση \textbf{έχει} κύριο χειρούργο
-  \textbf{και \textgreater= 0} βοηθούς (προσωπικό)
+  \textbf{και \textgreater= 0} βοηθούς (γιατρούς ή νοσηλευτές)
 \item
     \textbf{κάθε} φαρμακευτική συνταγή \textbf{εκδίδεται από} γιατρό \textbf{για} ασθενή
 \item 
@@ -193,14 +199,14 @@ right=2.5cm
     εξοπλισμός \textbf{μπορεί να συνδέεται με} φωτογραφικό υλικό
 \end{itemize}
 
-Σημειώνουμε ότι γιά την υλοποίηση των ασθενών και του προσωπικού έχουμε χρησιμοποιήσει ένα σχήμα κληρονομικότητας, όπου κάθε ασθενής και κάθε μέλος προσωπικού είναι άτομο και έχει ορισμένα χαρακτηριστικά. Ακόμη, διαχωρίζουμε τα είδη προσωπικού σε ιατρούς, νοσηλευτές, και διοικητικό προσωπικό. Ακολουθούμε, δηλαδή, μια σχεδίαση από πάνω προς τα κάτω.
+Σημειώνουμε ότι για την υλοποίηση των ασθενών και του προσωπικού έχουμε χρησιμοποιήσει ένα σχήμα κληρονομικότητας, όπου κάθε ασθενής και κάθε μέλος προσωπικού είναι άτομο και έχει ορισμένα χαρακτηριστικά. Ακόμη, διαχωρίζουμε τα είδη προσωπικού σε ιατρούς, νοσηλευτές, και διοικητικό προσωπικό. Ακολουθούμε, δηλαδή, μια σχεδίαση από πάνω προς τα κάτω.
 
 \clearpage
 
 \section{\eng{Relational Diagram}}
 Το σχεσιακό διάγραμμα της βάσης δημιουργήθηκε με τη βοήθεια του \eng{DBeaver\footnote{\urldbeaver}}.
 \begin{figure}[h]
-    \includegraphics[width=0.9\linewidth]{../diagrams/relational.pdf}
+    \includegraphics[width=0.9\linewidth]{../diagrams/relational.png}
     \caption{Σχεσιακό διάγραμμα βάσης}
     \label{fig:rel}
 \end{figure}
@@ -278,11 +284,11 @@ right=2.5cm
 \item
     Οι εικόνες αναπαρίστανται ως \eng{paths} σε υποθετικές πληροφορίες στον δίσκο.
 \item
-    Επιταχύνουμε, στο \eng{install.sql}, την εισαγωγή δεδομένων βάσει του ερωτήματος \texttt{A.6}\footnote{\eng{\urlworkbench}}.
+    Επιταχύνουμε την εισαγωγή δεδομένων στο \eng{install.sql} βάσει του ερωτήματος \texttt{A.6}\footnote{\eng{\urlworkbench}}.
 \item
-    Οι γιατρικές ειδικότητες προκύπτουν από τη λίστα του ΓεΣΥ \footnote{\eng{\urlgesy}}.
+    Οι ιατρικές ειδικότητες προκύπτουν από την αντίστοιχη λίστα του ΓεΣΥ \footnote{\eng{\urlgesy}}.
 \item
-    Στο δοθέν αρχείο ΕΛΛΗΝΙΚΗ\_ΟΝΟΜΑΤΟΛΟΓΙΑ\_ΚΑΙ\_ΚΩΔΙΚΟΠΟΙΗΣΗ\_ΤΩΝ\_ΙΑΤΡΙΚΩΝ\_ΠΡΑΞΕΩΝ, κάποιες τιμές είναι μη μοναδικές, και παραλείπονται απο τη βάση.
+    Στο δοθέν αρχείο ΕΛΛΗΝΙΚΗ\_ΟΝΟΜΑΤΟΛΟΓΙΑ\_ΚΑΙ\_ΚΩΔΙΚΟΠΟΙΗΣΗ\_ΤΩΝ\_ΙΑΤΡΙΚΩΝ\_ΠΡΑΞΕΩΝ, κάποιες τιμές είναι μη μοναδικές, και παραλείπονται από τη βάση.
 \langeng
 \begin{lstlisting}
 +---------+------+---------------------------------------------------+
@@ -383,7 +389,7 @@ LIMIT 10;
         \toprule
         id & select\_type & table & type & possible\_keys & key & key\_len & ref & rows & Extra \\
         \midrule
-        1 & PRIMARY & <derived2> & ALL & NULL & NULL & NULL & NULL & 436 & Using temporary; Using filesort \\
+        1 & PRIMARY & $<$derived2$>$ & ALL & NULL & NULL & NULL & NULL & 436 & Using temporary; Using filesort \\
         2 & DERIVED & r & ALL & fk\_rating\_hosp\_id & NULL & NULL & NULL & 206 & \\
         2 & DERIVED & h & eq\_ref & PRIMARY & PRIMARY & 4 & ntua\_db\_2026.r.hosp\_id & 1 & \\
         2 & DERIVED & hlt & ref & PRIMARY,fk\_hosp\_lab\_test\_hosp\_id & fk\_hosp\_lab\_test\_hosp\_id & 4 & ntua\_db\_2026.r.hosp\_id & 1 & Using index \\
@@ -403,7 +409,38 @@ LIMIT 10;
     \end{table}
 \langgrc
 
-\noindent Παρατηρούμε ότι το εξωτερικό (\eng{primary}) \eng{select} χρησιμοποιεί \eng{filesort} και προσωρινούς πίνακες για τον υπολογισμό του αποτελέσματος.
+\noindent Παρατηρούμε ότι το εξωτερικό (\eng{primary}) \eng{select} χρησιμοποιεί \eng{filesort} και προσωρινούς πίνακες για τον υπολογισμό του αποτελέσματος. Συνάμα, το \eng{JOIN} στον πίνακα \eng{rating} γίνεται για κάθε γραμμή (\eng{ALL} στην τέταρτη στήλη του \eng{explain}). Προς αποφυγήν του τελευταίου, αλλάζουμε τη σειρά με την οποία γίνονται τα \eng{JOIN}. Επιπλέον, επιβάλλουμε τη χρήση ευρετηρίων στους πίνακες \eng{hospitalisation}.
+
+
+\langeng
+\begin{lstlisting}[language=sql]
+SELECT AMKA, AVG(medical_care), AVG(experience)
+FROM (
+    SELECT /*+ JOIN_ORDER(lt, hlt, h, r) */ lt.doc_id as AMKA, medical_care, experience
+    FROM hospitalisation h FORCE INDEX (PRIMARY)
+    INNER JOIN hosp_lab_test hlt ON h.hosp_id = hlt.hosp_id
+    INNER JOIN lab_test lt ON hlt.lab_test_id = lt.lab_test_id
+    INNER JOIN rating r ON h.hosp_id = r.hosp_id
+    
+    UNION ALL
+    
+    SELECT sa.primary_doc_id as AMKA, medical_care, experience
+    FROM hospitalisation h FORCE INDEX (PRIMARY)
+    INNER JOIN hosp_med_act hma ON h.hosp_id = hma.hosp_id
+    INNER JOIN surgical_act sa ON hma.med_act_id = sa.med_act_id
+    INNER JOIN rating r ON h.hosp_id = r.hosp_id
+    
+    UNION ALL
+    
+    SELECT sada.assistant_id as AMKA, medical_care, experience
+    FROM hospitalisation h FORCE INDEX (PRIMARY)
+    INNER JOIN hosp_med_act hma ON h.hosp_id = hma.hosp_id
+    INNER JOIN surgical_act_doctor_assistants sada ON hma.med_act_id = sada.med_act_id
+    INNER JOIN rating r ON h.hosp_id = r.hosp_id
+) as hlpr
+GROUP BY AMKA;
+\end{lstlisting}
+\langgrc
 
 \subsection{\eng{Q06}}
 \langeng
@@ -433,26 +470,21 @@ LIMIT 10;
     \end{table}
 \langgrc
 
-\noindent Επιβάλλοντας τη χρήση \eng{index} στον πίνακα \eng{patient\_record} αναμένουμε ότι η σειρά των ενώσεων θα αρχίζει από αυτόν.
+\noindent Μεταβάλλουμε την εκτέλεση αφ' ενός επιβάλλοντας τη χρήση \eng{index} στο \eng{patient\_record}, αφ' ετέρου ορίζοντας τη σειρά των \eng{JOIN} να αρχίζει από το \eng{patient\_record}, καθώς στη συνέχεια ταξινομούμε το τελικό αποτέλεσμα, και υπολογίζουμε μέσες τιμές, βάσει του \eng{pr.AMKA}.
 
 \langeng
 \begin{lstlisting}[language=sql]
-    SELECT
+SELECT /*+ JOIN_ORDER(pr, h, ad, dd, r) */ 
     pr.AMKA, 
     h.hosp_id, 
     calculate_hospit_cost(h.hosp_id) AS cost, 
     ad.diag_id as admission_diagnosis, 
     dd.diag_id as discharge_diagnosis, 
-    ROUND(
-        (r.medical_care + r.nursing_care + r.cleanliness + r.food + r.experience) / 5,
-        2) AS avg_rating,
-    ROUND(
-        AVG((r.medical_care + r.nursing_care + r.cleanliness + r.food + r.experience) / 5) 
-        OVER (PARTITION BY pr.AMKA),
-        2) AS total_avg_rating
+    ROUND((r.medical_care + r.nursing_care + r.cleanliness + r.food + r.experience) / 5, 2) AS avg_rating,
+    ROUND(AVG((r.medical_care + r.nursing_care + r.cleanliness + r.food + r.experience) / 5) OVER (PARTITION BY pr.AMKA), 2) AS total_avg_rating
 FROM patient_record pr FORCE INDEX (PRIMARY)
-INNER JOIN hospitalisation h ON h.hosp_id = pr.hosp_id
-INNER JOIN admission_diagnosis ad ON h.hosp_id = ad.hosp_id
+STRAIGHT_JOIN hospitalisation h ON h.hosp_id = pr.hosp_id
+STRAIGHT_JOIN admission_diagnosis ad ON h.hosp_id = ad.hosp_id
 LEFT JOIN discharge_diagnosis dd ON h.hosp_id = dd.hosp_id
 LEFT JOIN rating r ON h.hosp_id = r.hosp_id
 ORDER BY pr.AMKA;
@@ -461,7 +493,7 @@ ORDER BY pr.AMKA;
 
 
 \subsection{Μέτρηση χρόνου}
-Λαμβάνουμε τον μέσο χρόνο από 10 εκτελέσεις του κάθε \eng{query}. Τα αποτελέσματα παρατίθονται στον πίνακα \ref{tab:times}. Παρατηρούμε ότι οι αλλαγές που βάζουμε οδηγούν σε υποβέλτιστη εκτέλεση των ερωτημάτων μας.
+Λαμβάνουμε τον μέσο χρόνο από 10 εκτελέσεις του κάθε \eng{query}. Τα αποτελέσματα παρατίθενται στον πίνακα \ref{tab:times}. Λόγω μικρού πλήθους δεδομένων (μόλις 75 γραμμές) δε βλέπουμε ουσιώδη διαφορά στον χρόνο εκτέλεσης του \eng{Q4}. Αντίθετα, για το \eng{Q6} έχουμε δελτίωση του μέσω χρόνου μεν, μεγαλύτερη απόκλιση δε.
 
 \begin{table}[htbp]
     \centering
@@ -469,17 +501,21 @@ ORDER BY pr.AMKA;
         \toprule
         Μέθοδος / Ερώτημα & \eng{Q04} & \eng{Q06} \\
          \midrule
-        Απλή κλίση & 6.4\unit{\milli\second} & 20.7\unit{\milli\second} \\
-        Εναλλακτική έκδοση & ~ & 29.5\unit{\milli\second} \\
+        Απλή κλίση & $4.8 \pm 1.17 \unit{\milli\second}$ & $22.2 \pm 1.47 \unit{\milli\second}$ \\
+        Εναλλακτική έκδοση & $5 \pm 1.34 \unit{\milli\second}$ & $18.7 \pm 5.25\unit{\milli\second}$ \\
          \bottomrule
     \end{tabular}
     \caption{Μέσος χρόνος εκτέλεσης \eng{queries}}
     \label{tab:times}
 \end{table}
 
+\newpage
+
 \section{\eng{DDL}}
+Ακολουθεί ο κώδικας \eng{MySQL} που ορίζει το σχήμα της βάσης δεδομένων. Σημειώνουμε ότι το \eng{lstlisting enviroment} δεν υποστηρίζει \eng{utf-8} χαρακτήρες, οπότε οι διάφορες ελληνικές συμβολοσειρές δεν εμφανίζονται.
+
 \langeng
-%\lstinputlisting[language=sql]{media/sinstall.sql}
+\lstinputlisting[language=sql]{media/sinstall.sql}
 \langgrc
 
 \clearpage

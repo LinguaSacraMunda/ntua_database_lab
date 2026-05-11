@@ -31,6 +31,70 @@ breaklines=true,
 breakatwhitespace=true,
 columns=fullflexible,
 extendedchar=true}
+\lstset{
+  columns=flexible,
+  literate=%
+    {α}{{\textgreek{a}}}1%
+    {ά}{{\textgreek{'a}}}1%
+    {β}{{\textgreek{b}}}1%
+    {γ}{{\textgreek{g}}}1%
+    {δ}{{\textgreek{d}}}1%
+    {ε}{{\textgreek{e}}}1%
+    {έ}{{\textgreek{'e}}}1%
+    {ζ}{{\textgreek{z}}}1%
+    {η}{{\textgreek{h}}}1%
+    {ή}{{\textgreek{'h}}}1%
+    {θ}{{\textgreek{j}}}1%
+    {ι}{{\textgreek{i}}}1%
+    {ί}{{\textgreek{'i}}}1%
+    {ϊ}{{\textgreek{"i}}}1%
+    {ΐ}{{\textgreek{'"i}}}1%
+    {κ}{{\textgreek{k}}}1%
+    {λ}{{\textgreek{l}}}1%
+    {μ}{{\textgreek{m}}}1%
+    {ν}{{\textgreek{n}}}1%
+    {ξ}{{\textgreek{x}}}1%
+    {ο}{{\textgreek{o}}}1%
+    {ό}{{\textgreek{'o}}}1%
+    {π}{{\textgreek{p}}}1%
+    {ρ}{{\textgreek{r}}}1%
+    {σ}{{\textgreek{sv}}}1%
+    {ς}{{\textgreek{c}}}1%
+    {τ}{{\textgreek{t}}}1%
+    {υ}{{\textgreek{u}}}1%
+    {ύ}{{\textgreek{'u}}}1%
+    {ϋ}{{\textgreek{"u}}}1%
+    {ΰ}{{\textgreek{'"u}}}1%
+    {φ}{{\textgreek{f}}}1%
+    {χ}{{\textgreek{q}}}1%
+    {ψ}{{\textgreek{y}}}1%
+    {ω}{{\textgreek{w}}}1%
+    {ώ}{{\textgreek{'w}}}1%
+    {Α}{{\textgreek{A}}}1%
+    {Β}{{\textgreek{B}}}1%
+    {Γ}{{\textgreek{G}}}1%
+    {Δ}{{\textgreek{D}}}1%
+    {Ε}{{\textgreek{E}}}1%
+    {Ζ}{{\textgreek{Z}}}1%
+    {Η}{{\textgreek{H}}}1%
+    {Θ}{{\textgreek{J}}}1%
+    {Ι}{{\textgreek{I}}}1%
+    {Κ}{{\textgreek{K}}}1%
+    {Λ}{{\textgreek{L}}}1%
+    {Μ}{{\textgreek{M}}}1%
+    {Ν}{{\textgreek{N}}}1%
+    {Ξ}{{\textgreek{X}}}1%
+    {Ο}{{\textgreek{O}}}1%
+    {Π}{{\textgreek{P}}}1%
+    {Ρ}{{\textgreek{R}}}1%
+    {Σ}{{\textgreek{S}}}1%
+    {Τ}{{\textgreek{T}}}1%
+    {Υ}{{\textgreek{U}}}1%
+    {Φ}{{\textgreek{F}}}1%
+    {Χ}{{\textgreek{Q}}}1%
+    {Ψ}{{\textgreek{Y}}}1%
+    {Ω}{{\textgreek{W}}}1%
+}
 
 \newcommand{\eng}[1]{\foreignlanguage{english}{#1}}
 \newcommand{\langeng}{\selectlanguage{english}}
@@ -85,7 +149,7 @@ extendedchar=true}
 Σκοπός μας είναι να μοντελοποιήσουμε τις διάφορες πληροφοριακές ανάγκες ενός νοσοκομείου, ανάγοντάς τες σε ένα σύνολο σχέσεων και οντοτήτων, το οποίο διαχειριζόμαστε υπολογιστικά. Συγκεκριμένα, υλοποιούμε μια σχεσιακή βάση, χρησιμοποιώντας το σύστημα διαχείρισης βάσεων δεδομένων \eng{MySQL/MariaDB}. Επιπλέον, αναγνωρίζουμε και επιβάλλουμε διάφορους περιορισμούς στα δεδομένα, είτε λογικούς, είτε ως λειτουργική απαίτηση του νοσοκομείου, με χρήση κατάλληλων \eng{\texttt{constraints}} και \eng{\texttt{triggers}}.
 Τέλος, ελέγχουμε την ορθότητα της υλοποίησής μας θέτοντας έναν αριθμό ερωτήσεων προς τη βάση, λαμβάνοντας κάθε φορά ανάλογες απαντήσεις.
 
-Σημειώνουμε ότι, πέραν των αρχείων \eng{SQL} που ορίζουν και αλληλεπιδρούν με τη βάση, στον φάκελο \eng{\texttt{code/}}, προσφέρουμε ένα αρχείο \eng{Python} το οποίο δημιουργεί δεδομένα για τη βάση με ημι-τυχαίο τρόπο, καθώς και ένα \eng{bash script} που εκτελεί το σύνολο των προαναφερθέντων ερωτημάτων προς τη βάση, και καταγράφει το αποτέλεσμά τους. 
+Σημειώνουμε ότι, πέραν των αρχείων \eng{SQL} που ορίζουν και αλληλεπιδρούν με τη βάση, στον φάκελο \eng{\texttt{code/}}, προσφέρουμε ένα αρχείο \eng{Python} το οποίο δημιουργεί δεδομένα για τη βάση με ημι-τυχαίο τρόπο, καθώς και ένα \eng{bash script} που εκτελεί το σύνολο των προαναφερθέντων ερωτημάτων προς τη βάση, και καταγράφει τα αποτέλεσματά τους. 
 
 \section{\eng{ERD}}
 Το διάγραμμα οντοτήτων-συσχετίσεων της βάσης δημιουργήθηκε με τη βοήθεια του \eng{draw.io\footnote{\urldrawio}}.
@@ -204,7 +268,7 @@ extendedchar=true}
 \clearpage
 
 \section{\eng{Relational Diagram}}
-Το σχεσιακό διάγραμμα της βάσης δημιουργήθηκε με τη βοήθεια του \eng{DBeaver\footnote{\urldbeaver}}.
+Το σχεσιακό διάγραμμα της βάσης δημιουργήθηκε με τη βοήθεια του \eng{DBeaver\footnote{\urldbeaver}}, βάσει του \eng{DDL} που παρατίθεται στην ενότητα \ref{sec:ddl}.
 \begin{figure}[h]
     \includegraphics[width=0.9\linewidth]{../diagrams/relational.png}
     \caption{Σχεσιακό διάγραμμα βάσης}
@@ -276,7 +340,7 @@ extendedchar=true}
 \item
     Κάθε τμήμα διαθέτει αίθουσες με κάποιο τύπο (χειρουργικές, επεμβάσεων, κ.λπ), κατάσταση και μοναδική αρίθμηση.
 \item
-    Τα τμήματα διαθέτουν εξοπλισμό εντός ή εκτός αιθουσών του τμήματος.
+    Τα τμήματα διαθέτουν εξοπλισμό εντός αιθουσών του τμήματος.
 \item
 Η διεύθυνση ασθενών εμπεριέχει τα στοιχεία του ΕΜΕπ
 \item
@@ -288,12 +352,12 @@ extendedchar=true}
 \item
     Οι ιατρικές ειδικότητες προκύπτουν από την αντίστοιχη λίστα του ΓεΣΥ \footnote{\eng{\urlgesy}}.
 \item
-    Στο δοθέν αρχείο ΕΛΛΗΝΙΚΗ\_ΟΝΟΜΑΤΟΛΟΓΙΑ\_ΚΑΙ\_ΚΩΔΙΚΟΠΟΙΗΣΗ\_ΤΩΝ\_ΙΑΤΡΙΚΩΝ\_ΠΡΑΞΕΩΝ, κάποιες τιμές είναι μη μοναδικές, και παραλείπονται από τη βάση.
+    Στο δοθέν αρχείο ΕΛΛΗΝΙΚΗ\_ΟΝΟΜΑΤΟΛΟΓΙΑ\_ΚΑΙ\_ΚΩΔΙΚΟΠΟΙΗΣΗ\_ΤΩΝ\_ΙΑΤΡΙΚΩΝ\_ΠΡΑΞΕΩΝ\footnote{βλ. σχόλιο \ref{fn:note1}}, κάποιες τιμές είναι μη μοναδικές, και παραλείπονται από τη βάση.
 \langeng
 \begin{lstlisting}
-+---------+------+---------------------------------------------------+
-| Level   | Code | Message                                           |
-+---------+------+---------------------------------------------------+
++-----+---+-----------------------------+
+| Level    |Code | Message                                            |
++-----+---+-----------------------------+
 | Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
 | Warning | 1062 | Duplicate entry 'I212249' for key 'med_proc_code' |
 | Warning | 1062 | Duplicate entry 'I212251' for key 'med_proc_code' |
@@ -303,7 +367,7 @@ extendedchar=true}
 | Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
 | Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
 | Warning | 1062 | Duplicate entry 'I212243' for key 'med_proc_code' |
-+---------+------+---------------------------------------------------+
++-----+---+-----------------------------+
 \end{lstlisting}
 \langgrc
 
@@ -370,16 +434,18 @@ LIMIT 10;
     Βελτιστοποίηση λύσης στο ερώτημα \eng{Q08}.
 \end{itemize}
 
-\noindent Οι ανωτέρω ((διάλογοι)) έχουν μεταφερθεί αυτολεξεί στον φάκελο \eng{\texttt{docs/transcripts}}.
+\noindent Οι ανωτέρω ((διάλογοι)) έχουν μεταφερθεί αυτολεξεί στον φάκελο \eng{\texttt{docs/transcripts}}. 
 
 \section{Ερωτήματα}
+Στην παρούσα ενότητα αναλύουμε την πορεία εκτέλεσης των ερωτημάτων \eng{Q04} και \eng{Q06}. Συγκεκριμένα, παραθέτουμε το αντίστοιχο \eng{query}, το αποτέλεσμα του \eng{explain} της \eng{MySQL}, μια εναλλακτική έκδοση με \eng{force index} και \eng{optimizer hints}, και, τέλος, συγκρίνουμε τον χρόνο εκτέλεσης των δύο εκδόσεων του κάθε ερωτήματος.
+
 \subsection{\eng{Q04}}
 \langeng
 \lstinputlisting[language=sql]{../sql/Q04.sql}
 \langgrc
 
 \subsubsection{Ανάλυση}
-Ευθύς αμέσως παραθέτουμε το αποτέλεσμα του \eng{explain}.
+Ευθύς αμέσως παραθέτουμε το αποτέλεσμα του \eng{\texttt{EXPLAIN}}.
 
 \langeng
 \begin{table}[htbp]
@@ -470,7 +536,7 @@ GROUP BY AMKA;
     \end{table}
 \langgrc
 
-\noindent Μεταβάλλουμε την εκτέλεση αφ' ενός επιβάλλοντας τη χρήση \eng{index} στο \eng{patient\_record}, αφ' ετέρου ορίζοντας τη σειρά των \eng{JOIN} να αρχίζει από το \eng{patient\_record}, καθώς στη συνέχεια ταξινομούμε το τελικό αποτέλεσμα, και υπολογίζουμε μέσες τιμές, βάσει του \eng{pr.AMKA}.
+\noindent Μεταβάλλουμε την εκτέλεση αφ' ενός επιβάλλοντας τη χρήση \eng{index} στο \eng{patient\_record}, αφ' ετέρου ορίζοντας τη σειρά των \eng{JOIN} να αρχίζει από το \eng{patient\_record}, καθώς στη συνέχεια ταξινομούμε το τελικό αποτέλεσμα και υπολογίζουμε μέσες τιμές βάσει του \eng{pr.AMKA}.
 
 \langeng
 \begin{lstlisting}[language=sql]
@@ -493,7 +559,7 @@ ORDER BY pr.AMKA;
 
 
 \subsection{Μέτρηση χρόνου}
-Λαμβάνουμε τον μέσο χρόνο από 10 εκτελέσεις του κάθε \eng{query}. Τα αποτελέσματα παρατίθενται στον πίνακα \ref{tab:times}. Λόγω μικρού πλήθους δεδομένων (μόλις 75 γραμμές) δε βλέπουμε ουσιώδη διαφορά στον χρόνο εκτέλεσης του \eng{Q4}. Αντίθετα, για το \eng{Q6} έχουμε δελτίωση του μέσω χρόνου μεν, μεγαλύτερη απόκλιση δε.
+Λαμβάνουμε τον μέσο χρόνο από 10 εκτελέσεις του κάθε \eng{query}. Τα αποτελέσματα παρατίθενται στον πίνακα \ref{tab:times}. Λόγω μικρού πλήθους δεδομένων δε βλέπουμε ουσιώδη διαφορά στον χρόνο εκτέλεσης του \eng{Q4}. Αντίθετα, για το \eng{Q6} έχουμε δελτίωση του μέσω χρόνου μεν, μεγαλύτερη απόκλιση δε.
 
 \begin{table}[htbp]
     \centering
@@ -511,8 +577,8 @@ ORDER BY pr.AMKA;
 
 \newpage
 
-\section{\eng{DDL}}
-Ακολουθεί ο κώδικας \eng{MySQL} που ορίζει το σχήμα της βάσης δεδομένων. Σημειώνουμε ότι το \eng{lstlisting enviroment} δεν υποστηρίζει \eng{utf-8} χαρακτήρες, οπότε οι διάφορες ελληνικές συμβολοσειρές δεν εμφανίζονται.
+\section{\eng{DDL}} \label{sec:ddl}
+Ακολουθεί ο κώδικας \eng{MySQL} που ορίζει το σχήμα της βάσης δεδομένων.
 
 \langeng
 \lstinputlisting[language=sql]{media/sinstall.sql}

@@ -24,9 +24,9 @@ pip install -r code/requirements.txt
 python code/data_gen.py
 ```
 
->Note that the python script generating the above data is naive; complex constraints enforced by the database are not taken into account, simplifying the generation process. Therefore, a number of errors may be encountered when prompting the insertion, specifically when staging and enabling the shifts. These are expected and a product of the implemented triggers.
->
->Additionally, due to the randomness of the generated data, not all queries Q01-Q15 are guaranteed to return a non-empty set. The data provided within this repository, in conjunction with the changes described in the report, guarantee that all queries in the `sql/` directory return at least one non-empty row.
+Note that the python script generating the above data is naive; complex constraints enforced by the database are not taken into account, simplifying the generation process. Therefore, a number of errors may be encountered when prompting the insertion, specifically when staging and enabling the shifts. These are expected and a product of the implemented triggers.
+
+Additionally, due to the randomness of the generated data, not all queries Q01-Q15 are guaranteed to return a non-empty set. The data provided within this repository, in conjunction with the changes described in the report, guarantee that all queries in the `sql/` directory return at least one non-empty row.
 
 4. Load dummy data
 ```shell

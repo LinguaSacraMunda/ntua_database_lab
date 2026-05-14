@@ -1416,6 +1416,50 @@ CREATE TRIGGER upd_medical_act BEFORE UPDATE ON medical_act FOR EACH ROW BEGIN
     END IF;
 END;;
 
+-- =========================================================== 
+--                         Insurance
+-- =========================================================== 
+
+CREATE TRIGGER ins_patient_insurance AFTER INSERT ON patient_insurance FOR EACH ROW BEGIN
+    DECLARE unins_id INT;
+
+    SELECT carrier_id INTO unins_id
+    FROM insurance_carrier
+    WHERE name = 'Ανασφάλιστος';
+
+    IF NEW.carrier_id <> unins_id THEN
+        DELETE FROM patient_insurance
+        WHERE AMKA = NEW.AMKA
+          AND carrier_id = unins_id;
+    END IF;
+
+    IF NEW.carrier_id = unins_id AND EXISTS (
+        SELECT *
+        FROM patient_insurance
+        WHERE AMKA = NEW.AMKA
+          AND carrier_id <> unins_id
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Patient already insured';
+    END IF;
+END;;
+
+CREATE TRIGGER del_patient_insurance AFTER DELETE ON patient_insurance FOR EACH ROW BEGIN
+    DECLARE unins_id INT;
+
+    SELECT carrier_id INTO unins_id
+    FROM insurance_carrier
+    WHERE name = 'Ανασφάλιστος';
+
+    IF NOT EXISTS (
+        SELECT *
+        FROM patient_insurance
+        WHERE AMKA = OLD.AMKA
+    ) THEN
+        INSERT INTO patient_insurance (AMKA, carrier_id) VALUES (OLD.AMKA, unins_id);
+    END IF;
+END;;
+
 DELIMITER ;
 
 -- ==============================================================================

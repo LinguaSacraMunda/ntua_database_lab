@@ -851,6 +851,19 @@ END;;
 --                      Hospitalisation 
 -- =========================================================== 
 
+CREATE TRIGGER ins_hospitalisation_adm BEFORE INSERT ON hospitalisation FOR EACH ROW BEGIN
+    DECLARE dob_t DATE;
+
+    SELECT date_of_birth INTO dob_t
+    FROM patient
+    WHERE AMKA = NEW.AMKA;
+
+    IF DATE(NEW.admission_date) < dob_t THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Admission date cannot precede patient date of birth';
+    END IF;
+END;;
+
 CREATE TRIGGER upd_hospitalisation_discharge_date BEFORE UPDATE ON hospitalisation FOR EACH ROW BEGIN
     IF NEW.discharge_date IS NOT NULL 
         AND NEW.admission_date > NEW.discharge_date THEN
@@ -1416,6 +1429,38 @@ CREATE TRIGGER upd_medical_act BEFORE UPDATE ON medical_act FOR EACH ROW BEGIN
     END IF;
 END;;
 
+CREATE TRIGGER ins_hosp_med_act_time BEFORE INSERT ON hosp_med_act FOR EACH ROW BEGIN
+    IF (
+        SELECT start_datetime
+        FROM medical_act
+        WHERE med_act_id = NEW.med_act_id
+    ) < (
+        SELECT admission_date
+        FROM hospitalisation h
+        WHERE hosp_id = NEW.hosp_id
+        )
+    THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Medical act start_datetime cannot precede hospitalisation admission date';
+    END IF;
+END;;
+
+CREATE TRIGGER ins_hosp_lab_test BEFORE INSERT ON hosp_lab_test FOR EACH ROW BEGIN
+    IF (
+        SELECT start_datetime
+        FROM lab_test 
+        WHERE lab_test_id = NEW.lab_test_id
+    ) < (
+        SELECT admission_date
+        FROM hospitalisation h
+        WHERE hosp_id = NEW.hosp_id
+        )
+    THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Lab test date cannot precede hospitalisation admission date';
+    END IF;
+END;;
+
 -- =========================================================== 
 --                         Insurance
 -- =========================================================== 
@@ -1458,6 +1503,16 @@ CREATE TRIGGER del_patient_insurance AFTER DELETE ON patient_insurance FOR EACH 
     ) THEN
         INSERT INTO patient_insurance (AMKA, carrier_id) VALUES (OLD.AMKA, unins_id);
     END IF;
+END;;
+
+CREATE TRIGGER ins_patient_ins_init AFTER INSERT ON patient FOR EACH ROW BEGIN
+    DECLARE unins_id INT;
+
+    SELECT carrier_id INTO unins_id
+    FROM insurance_carrier
+    WHERE name = 'Ανασφάλιστος';
+
+    INSERT INTO patient_insurace (AMKA, carrier_id) VALUES (NEW.AMKA, unins_id);
 END;;
 
 DELIMITER ;

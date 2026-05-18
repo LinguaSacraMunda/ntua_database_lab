@@ -349,7 +349,6 @@ CREATE TABLE insurance_carrier (
     PRIMARY KEY(carrier_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
 CREATE TABLE patient_insurance (
     AMKA VARCHAR(10) NOT NULL,
     carrier_id INT UNSIGNED NOT NULL,
@@ -737,6 +736,7 @@ DELIMITER ;;
 --                     Doctor Supervison
 -- =========================================================== 
 
+DROP TRIGGER IF EXISTS ins_doc_supervisor_cycle;;
 CREATE TRIGGER ins_doc_supervisor_cycle BEFORE INSERT ON doctor FOR EACH ROW BEGIN
     IF NEW.supervisor_id IS NOT NULL THEN
 
@@ -764,6 +764,7 @@ CREATE TRIGGER ins_doc_supervisor_cycle BEFORE INSERT ON doctor FOR EACH ROW BEG
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS upd_doc_supervisor_cycle;;
 CREATE TRIGGER upd_doc_supervisor_cycle BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
     IF NEW.supervisor_id IS NOT NULL THEN
 
@@ -796,6 +797,7 @@ END;;
 -- Director cannot have a supervisor
 --
 
+DROP TRIGGER IF EXISTS ins_doc_supervisor;;
 CREATE TRIGGER ins_doc_supervisor BEFORE INSERT ON doctor FOR EACH ROW BEGIN
     DECLARE rank_t VARCHAR(45);
 
@@ -822,6 +824,7 @@ CREATE TRIGGER ins_doc_supervisor BEFORE INSERT ON doctor FOR EACH ROW BEGIN
 END;;
 
 
+DROP TRIGGER IF EXISTS upd_doc_supervisor;;
 CREATE TRIGGER upd_doc_supervisor BEFORE UPDATE ON doctor FOR EACH ROW BEGIN
     DECLARE rank_t VARCHAR(45);
 
@@ -851,6 +854,7 @@ END;;
 --                      Hospitalisation 
 -- =========================================================== 
 
+DROP TRIGGER IF EXISTS ins_hospitalisation_adm;;
 CREATE TRIGGER ins_hospitalisation_adm BEFORE INSERT ON hospitalisation FOR EACH ROW BEGIN
     DECLARE dob_t DATE;
 
@@ -864,6 +868,7 @@ CREATE TRIGGER ins_hospitalisation_adm BEFORE INSERT ON hospitalisation FOR EACH
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS upd_hospitalisation_discharge_date;;
 CREATE TRIGGER upd_hospitalisation_discharge_date BEFORE UPDATE ON hospitalisation FOR EACH ROW BEGIN
     IF NEW.discharge_date IS NOT NULL 
         AND NEW.admission_date > NEW.discharge_date THEN
@@ -872,6 +877,7 @@ CREATE TRIGGER upd_hospitalisation_discharge_date BEFORE UPDATE ON hospitalisati
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS ins_hospitalisation_triage;;
 CREATE TRIGGER ins_hospitalisation_triage AFTER INSERT ON hospitalisation FOR EACH ROW BEGIN
     UPDATE triage
     SET admission_time = NEW.admission_date
@@ -892,6 +898,7 @@ END;;
 -- AND if a junior doctor is part of a shift, 
 --     then at least one senior doctor must be present
 
+DROP TRIGGER IF EXISTS upd_shift_validity;;
 CREATE TRIGGER upd_shift_validity BEFORE UPDATE ON shift FOR EACH ROW BEGIN
     DECLARE d_cnt INT DEFAULT 0;
     DECLARE n_cnt INT DEFAULT 0;
@@ -934,6 +941,7 @@ CREATE TRIGGER upd_shift_validity BEFORE UPDATE ON shift FOR EACH ROW BEGIN
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS del_doctor_shift;;
 CREATE TRIGGER del_doctor_shift BEFORE DELETE ON doctor_shift FOR EACH ROW BEGIN
     DECLARE cnt INT DEFAULT 0;
     DECLARE jr_cnt INT DEFAULT 0;
@@ -967,6 +975,7 @@ CREATE TRIGGER del_doctor_shift BEFORE DELETE ON doctor_shift FOR EACH ROW BEGIN
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS del_nurse_shift;;
 CREATE TRIGGER del_nurse_shift BEFORE DELETE ON nurse_shift FOR EACH ROW BEGIN
     DECLARE cnt INT DEFAULT 0;
 
@@ -980,6 +989,7 @@ CREATE TRIGGER del_nurse_shift BEFORE DELETE ON nurse_shift FOR EACH ROW BEGIN
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS del_admin_shift;;
 CREATE TRIGGER del_admin_shift BEFORE DELETE ON admin_shift FOR EACH ROW BEGIN
     DECLARE cnt INT DEFAULT 0;
 
@@ -999,6 +1009,7 @@ END;;
 -- ~ no staff member may have > 3 consecutive night shifts
 --
 
+DROP TRIGGER IF EXISTS ins_consecutive_doctor_shift;;
 CREATE TRIGGER ins_consecutive_doctor_shift BEFORE INSERT ON doctor_shift FOR EACH ROW BEGIN
     DECLARE day_t DATE;
     DECLARE type_t INT;
@@ -1052,6 +1063,7 @@ CREATE TRIGGER ins_consecutive_doctor_shift BEFORE INSERT ON doctor_shift FOR EA
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS ins_consecutive_nurse_shift;;
 CREATE TRIGGER ins_consecutive_nurse_shift BEFORE INSERT ON nurse_shift FOR EACH ROW BEGIN
     DECLARE day_t DATE;
     DECLARE type_t INT;
@@ -1105,6 +1117,7 @@ CREATE TRIGGER ins_consecutive_nurse_shift BEFORE INSERT ON nurse_shift FOR EACH
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS ins_consecutive_admin_shift;;
 CREATE TRIGGER ins_consecutive_admin_shift BEFORE INSERT ON admin_shift FOR EACH ROW BEGIN
     DECLARE day_t DATE;
     DECLARE type_t INT;
@@ -1165,6 +1178,7 @@ END;;
 -- ~ admin: 25
 --
 
+DROP TRIGGER IF EXISTS ins_doctor_monthly_shift_lim;;
 CREATE TRIGGER ins_doctor_monthly_shift_lim BEFORE INSERT ON doctor_shift FOR EACH ROW BEGIN
     DECLARE date_t DATE;
     DECLARE cnt INT DEFAULT 0;
@@ -1186,6 +1200,7 @@ CREATE TRIGGER ins_doctor_monthly_shift_lim BEFORE INSERT ON doctor_shift FOR EA
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS ins_nurse_monthly_shift_lim;;
 CREATE TRIGGER ins_nurse_monthly_shift_lim BEFORE INSERT ON nurse_shift FOR EACH ROW BEGIN
     DECLARE date_t DATE;
     DECLARE cnt INT DEFAULT 0;
@@ -1207,6 +1222,7 @@ CREATE TRIGGER ins_nurse_monthly_shift_lim BEFORE INSERT ON nurse_shift FOR EACH
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS ins_admin_monthly_shift_lim;;
 CREATE TRIGGER ins_admin_monthly_shift_lim BEFORE INSERT ON admin_shift FOR EACH ROW BEGIN
     DECLARE date_t DATE;
     DECLARE cnt INT DEFAULT 0;
@@ -1233,6 +1249,7 @@ END;;
 --                        Prescriptions 
 -- =========================================================== 
 
+DROP TRIGGER IF EXISTS ins_prescribed_prod_patient_allergy;;
 CREATE TRIGGER ins_prescribed_prod_patient_allergy BEFORE INSERT ON prescribed_products FOR EACH ROW BEGIN
     DECLARE patient_id_t VARCHAR(10);
     DECLARE act_sub_id_t INT UNSIGNED;
@@ -1255,6 +1272,7 @@ END;;
 
 
 
+DROP TRIGGER IF EXISTS upd_prescribed_prod_patient_allergy;;
 CREATE TRIGGER upd_prescribed_prod_patient_allergy BEFORE UPDATE ON prescribed_products FOR EACH ROW BEGIN
     DECLARE patient_id_t VARCHAR(10);
 
@@ -1282,6 +1300,7 @@ END;;
 -- Prevent two acts from taking place at the same place at the same time
 --
 
+DROP TRIGGER IF EXISTS ins_surgery_locality_overlap;;
 CREATE TRIGGER ins_surgery_locality_overlap BEFORE INSERT ON surgical_act FOR EACH ROW BEGIN
     DECLARE start_t DATETIME;
     DECLARE end_t TIME;
@@ -1307,6 +1326,7 @@ END;;
 -- Prevent temporal overlaps when assigning staff
 --
 
+DROP TRIGGER IF EXISTS ins_surgery_temporality_main_doc;;
 CREATE TRIGGER ins_surgery_temporality_main_doc BEFORE INSERT ON surgical_act FOR EACH ROW BEGIN
     DECLARE start_t DATETIME;
     DECLARE end_t TIME;
@@ -1327,6 +1347,7 @@ CREATE TRIGGER ins_surgery_temporality_main_doc BEFORE INSERT ON surgical_act FO
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS ins_surgery_temporality_assist_doc;;
 CREATE TRIGGER ins_surgery_temporality_assist_doc BEFORE INSERT ON surgical_act_doctor_assistants FOR EACH ROW BEGIN
     DECLARE start_t DATETIME;
     DECLARE end_t TIME;
@@ -1359,6 +1380,7 @@ CREATE TRIGGER ins_surgery_temporality_assist_doc BEFORE INSERT ON surgical_act_
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS ins_surgery_temporality_assist_nurse;;
 CREATE TRIGGER ins_surgery_temporality_assist_nurse BEFORE INSERT ON surgical_act_nurse_assistants FOR EACH ROW BEGIN
     DECLARE start_t DATETIME;
     DECLARE end_t TIME;
@@ -1384,6 +1406,7 @@ END;;
 -- =========================================================== 
 -- A rating can only be given after a hospitalisation has ended
 
+DROP TRIGGER IF EXISTS ins_rating;;
 CREATE TRIGGER ins_rating BEFORE INSERT ON rating FOR EACH ROW BEGIN
     DECLARE discharge_t TIMESTAMP; 
 
@@ -1401,6 +1424,7 @@ END;;
 --                     Medical/test procedures 
 -- =========================================================== 
 
+DROP TRIGGER IF EXISTS ins_lab_test;;
 CREATE TRIGGER ins_lab_test BEFORE INSERT ON lab_test FOR EACH ROW BEGIN
     IF NEW.med_proc_id <= 6608 THEN
         SIGNAL SQLSTATE '45000'
@@ -1408,6 +1432,7 @@ CREATE TRIGGER ins_lab_test BEFORE INSERT ON lab_test FOR EACH ROW BEGIN
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS upd_lab_test;;
 CREATE TRIGGER upd_lab_test BEFORE UPDATE ON lab_test FOR EACH ROW BEGIN
     IF NEW.med_proc_id <= 6608 THEN
         SIGNAL SQLSTATE '45000'
@@ -1415,6 +1440,7 @@ CREATE TRIGGER upd_lab_test BEFORE UPDATE ON lab_test FOR EACH ROW BEGIN
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS ins_medical_act;;
 CREATE TRIGGER ins_medical_act BEFORE INSERT ON medical_act FOR EACH ROW BEGIN
     IF NEW.med_proc_id > 6608 THEN
         SIGNAL SQLSTATE '45000'
@@ -1422,6 +1448,7 @@ CREATE TRIGGER ins_medical_act BEFORE INSERT ON medical_act FOR EACH ROW BEGIN
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS upd_medical_act;;
 CREATE TRIGGER upd_medical_act BEFORE UPDATE ON medical_act FOR EACH ROW BEGIN
     IF NEW.med_proc_id > 6608 THEN
         SIGNAL SQLSTATE '45000'
@@ -1429,6 +1456,7 @@ CREATE TRIGGER upd_medical_act BEFORE UPDATE ON medical_act FOR EACH ROW BEGIN
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS ins_hosp_med_act_time;;
 CREATE TRIGGER ins_hosp_med_act_time BEFORE INSERT ON hosp_med_act FOR EACH ROW BEGIN
     IF (
         SELECT start_datetime
@@ -1445,10 +1473,11 @@ CREATE TRIGGER ins_hosp_med_act_time BEFORE INSERT ON hosp_med_act FOR EACH ROW 
     END IF;
 END;;
 
+DROP TRIGGER IF EXISTS ins_hosp_lab_test;;
 CREATE TRIGGER ins_hosp_lab_test BEFORE INSERT ON hosp_lab_test FOR EACH ROW BEGIN
     IF (
-        SELECT start_datetime
-        FROM lab_test 
+        SELECT lt.date
+        FROM lab_test lt
         WHERE lab_test_id = NEW.lab_test_id
     ) < (
         SELECT admission_date
@@ -1465,54 +1494,65 @@ END;;
 --                         Insurance
 -- =========================================================== 
 
-CREATE TRIGGER ins_patient_insurance AFTER INSERT ON patient_insurance FOR EACH ROW BEGIN
+DROP TRIGGER IF EXISTS init_patient_insurance;;
+CREATE TRIGGER init_patient_insurance AFTER INSERT ON patient FOR EACH ROW BEGIN
     DECLARE unins_id INT;
 
     SELECT carrier_id INTO unins_id
     FROM insurance_carrier
     WHERE name = 'Ανασφάλιστος';
 
-    IF NEW.carrier_id <> unins_id THEN
+    INSERT INTO patient_insurance (AMKA, carrier_id) VALUES (NEW.AMKA, unins_id);
+END;;
+
+DROP PROCEDURE IF EXISTS add_patient_insurance;;
+CREATE PROCEDURE add_patient_insurance(IN amka_t VARCHAR(10), IN carrier_id_t INT) BEGIN
+    DECLARE unins_id INT;
+
+    SELECT carrier_id INTO unins_id
+    FROM insurance_carrier
+    WHERE name = 'Ανασφάλιστος';
+
+    IF carrier_id_t <> unins_id THEN
         DELETE FROM patient_insurance
-        WHERE AMKA = NEW.AMKA
+        WHERE AMKA = amka_t
           AND carrier_id = unins_id;
     END IF;
 
-    IF NEW.carrier_id = unins_id AND EXISTS (
-        SELECT *
-        FROM patient_insurance
-        WHERE AMKA = NEW.AMKA
-          AND carrier_id <> unins_id
-    ) THEN
+    IF carrier_id_t = unins_id
+       AND EXISTS (
+            SELECT *
+            FROM patient_insurance
+            WHERE AMKA = amka_t
+              AND carrier_id <> unins_id
+       )
+    THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Patient already insured';
     END IF;
+
+    INSERT INTO patient_insurance (AMKA, carrier_id) VALUES (amka_t, carrier_id_t);
 END;;
 
-CREATE TRIGGER del_patient_insurance AFTER DELETE ON patient_insurance FOR EACH ROW BEGIN
+DROP PROCEDURE IF EXISTS del_patient_insurance;;
+CREATE PROCEDURE del_patient_insurance(IN amka_t VARCHAR(10), IN carrier_id_t INT) BEGIN
     DECLARE unins_id INT;
 
     SELECT carrier_id INTO unins_id
     FROM insurance_carrier
     WHERE name = 'Ανασφάλιστος';
+
+    DELETE FROM patient_insurance 
+    WHERE AMKA = amka_t
+      AND carrier_id = carrier_id_t;
 
     IF NOT EXISTS (
         SELECT *
         FROM patient_insurance
-        WHERE AMKA = OLD.AMKA
-    ) THEN
-        INSERT INTO patient_insurance (AMKA, carrier_id) VALUES (OLD.AMKA, unins_id);
+        WHERE AMKA = amka_t
+        ) THEN
+        INSERT INTO patient_insurance (AMKA, carrier_id) VALUES (amka_t, unins_id);
     END IF;
-END;;
-
-CREATE TRIGGER ins_patient_ins_init AFTER INSERT ON patient FOR EACH ROW BEGIN
-    DECLARE unins_id INT;
-
-    SELECT carrier_id INTO unins_id
-    FROM insurance_carrier
-    WHERE name = 'Ανασφάλιστος';
-
-    INSERT INTO patient_insurace (AMKA, carrier_id) VALUES (NEW.AMKA, unins_id);
 END;;
 
 DELIMITER ;

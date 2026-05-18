@@ -357,7 +357,8 @@ def generate_insurance(fdr, id):
 
 def assign_to_carrier(fdr, lim, amka):
     carrier_id = random.randint(1, lim);
-    fdr.write(f"INSERT INTO patient_insurance (AMKA, carrier_id) VALUES ('{amka}', '{carrier_id}');\n")
+    fdr.write(f"CALL add_patient_insurance({amka}, {carrier_id});\n");
+    #fdr.write(f"INSERT INTO patient_insurance (AMKA, carrier_id) VALUES ('{amka}', '{carrier_id}');\n")
 
 # ========================================================================
 #                              Allergy Gen 
@@ -625,7 +626,8 @@ def main():
         if (DISABLE_FK_CHECK):
             fdr.write("SET FOREIGN_KEY_CHECKS = 0;\n")
 
-        clear_tables(fdr)
+        clear_tables(fdr);
+        fdr.write(f"INSERT INTO insurance_carrier (carrier_id, name) VALUES (1, 'Ανασφάλιστος');\n")
 
         for _ in range(patient_num):
             amka = generate_patient(fdr)
@@ -664,7 +666,6 @@ def main():
         for _ in range(equip_num):
             generate_equipment(fdr)
 
-        fdr.write(f"INSERT INTO insurance_carrier (carrier_id, name) VALUES (1, 'Ανασφάλιστος');\n")
         for i in range(insurance_carrier_num - 1):
             generate_insurance(fdr, i + 2)
 

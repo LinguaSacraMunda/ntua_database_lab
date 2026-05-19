@@ -16,5 +16,3 @@ do
     mariadb -u root -p$1 ntua_db_2026 -t < "sql/Q${i}.sql" > "sql/Q${i}_out.txt"
     echo "Q${i} END"
 done
-
-unset pas
